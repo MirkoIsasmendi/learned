@@ -66,19 +66,20 @@ export default function RegistroAlumno({ setMode, onAuthSuccess }) {
       </form>
 
       <div className="mt-6 flex justify-between text-white text-sm font-medium">
-        <span
-          className="cursor-pointer hover:text-gray-300 transition-all duration-200 btn-animate transform hover:scale-105"
-          onClick={() => setMode("profesor")}
-        >
-          ¿Eres un profesor?
-        </span>
-        <span
-          className="cursor-pointer hover:text-gray-300 transition-all duration-200 btn-animate transform hover:scale-105"
-          onClick={() => setMode("login")}
-        >
-          ¿Ya cuentas con cuenta?
-        </span>
-      </div>
+  <span
+    className="cursor-pointer hover:text-gray-300"
+    onClick={() => setMode("registroProfesor")}
+  >
+    ¿Eres un profesor?
+  </span>
+  <span
+    className="cursor-pointer hover:text-gray-300"
+    onClick={() => setMode("login")}
+  >
+    ¿Ya tienes cuenta?
+  </span>
+</div>
+
     </div>
   );
 }

@@ -8,12 +8,14 @@ import Llamada from "./llamada";
 import { HiChevronLeft } from "react-icons/hi2";
 
 
+
 export default function ClasePage() {
   const [chatAbierto, setChatAbierto] = useState(false);
   const [llamadaActiva, setLlamadaActiva] = useState(false);
   const [menuAbierto, setMenuAbierto] = useState(false); 
   const { id } = useParams();
   const navigate = useNavigate();
+  const [menu, setMenu] = useState(false);
 
   const usuarioActual = {
     nombre: "Bautista",
@@ -67,7 +69,7 @@ export default function ClasePage() {
         className={`absolute left-72 top-[60px] bottom-0 w-80 
         bg-[#14182A] text-white shadow-2xl
         transform transition-transform duration-300 ease-out
-        ${menuAbierto ? "translate-x-0 slide-in-left" : "slide-out-left"}
+        ${menuAbierto ? "translate-x-0 slide-in-left" : menu ? "slide-out-left" : "-translate-x-full"}
         z-10 overflow-y-auto`}
         aria-hidden={!menuAbierto}
       >
@@ -75,7 +77,10 @@ export default function ClasePage() {
         <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between fade-in">
           <span className="text-sm font-semibold">Configuración de la clase</span>
           <button
-            onClick={() => setMenuAbierto(false)}
+            onClick={() => {
+              setMenuAbierto(false) 
+              setMenu(true)
+            }}
             className="p-1 rounded hover:bg-white/10 focus:outline-none btn-animate transform hover:scale-110 transition-all duration-200"
             aria-label="Cerrar panel"
           >
