@@ -10,16 +10,41 @@ export default function Login({ setMode, onAuthSuccess }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login:", formData);
-    onAuthSuccess();
+
+    try {
+      const response = await fetch("http://localhost:5000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: formData.mail,
+          password: formData.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Login exitoso:", data);
+        onAuthSuccess(data.usuario); // o lo que necesites hacer con el usuario
+      } else {
+        console.error("Error de login:", data.error);
+        alert(data.error); // podés mostrarlo en pantalla en vez de alert
+      }
+    } catch (error) {
+      console.error("Error de red:", error);
+      alert("No se pudo conectar con el servidor");
+    }
   };
+
 
   return (
     <div className="bg-[#12122B] p-8 rounded-lg shadow-lg w-[400px] text-center fade-in">
       <h2 className="text-white text-2xl font-bold">Iniciar Sesión</h2>
-      
+
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <input
           type="email"
@@ -47,19 +72,19 @@ export default function Login({ setMode, onAuthSuccess }) {
       </form>
 
       <div className="mt-6 flex justify-between text-white text-sm font-medium">
-  <span
-    className="cursor-pointer hover:text-gray-300"
-    onClick={() => setMode("registroAlumno")}
-  >
-    ¿Eres un alumno? 
-  </span>
-  <span
-    className="cursor-pointer hover:text-gray-300"
-    onClick={() => setMode("registroProfesor")}
-  >
-    ¿Eres un profesor? 
-  </span>
-</div>
+        <span
+          className="cursor-pointer hover:text-gray-300"
+          onClick={() => setMode("registroAlumno")}
+        >
+          ¿Eres un alumno?
+        </span>
+        <span
+          className="cursor-pointer hover:text-gray-300"
+          onClick={() => setMode("registroProfesor")}
+        >
+          ¿Eres un profesor?
+        </span>
+      </div>
 
     </div>
   );

@@ -1,4 +1,5 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import { GrFormNext, GrFormPrevious } from "react-icons/gr";
 import DetalleTarea from "./DetalleTarjeta";
 
@@ -66,7 +67,28 @@ const SeccionCarrusel = ({ titulo, tarjetas, onTarjetaClick }) => {
 };
 
 const Contenedor = () => {
+  const { id: claseId } = useParams(); // clase_id desde la URL
+  const alumnoId = localStorage.getItem("usuario_id"); // asumimos que está guardado
+
   const [tareaSeleccionada, setTareaSeleccionada] = useState(null);
+  const [pendientes, setPendientes] = useState([]);
+  const [proceso, setProceso] = useState([]);
+  const [hechas, setHechas] = useState([]);
+
+  useEffect(() => {
+    if (!claseId) return;
+
+    fetch(`http://localhost:5000/api/trabajos/${claseId}/estu001`)
+      .then((res) => res.json())
+      .then((data) => {
+        setPendientes(data.sin_hacer || []);
+        setProceso(data.en_proceso || []);
+        setHechas(data.realizado || []);
+      })
+      .catch((err) => {
+        console.error("Error al cargar tareas:", err);
+      });
+  }, [claseId, alumnoId]);
 
   if (tareaSeleccionada) {
     return (
@@ -81,29 +103,19 @@ const Contenedor = () => {
     <div className="p-6 space-y-6 flex flex-col items-center">
       <SeccionCarrusel
         titulo="Tareas Pendientes"
-        tarjetas={[
-          { titulo: "Tarea 1", descripcion: "aaaaaaaaaaaaaaa" },
-          { titulo: "Tarea 2", descripcion: "bbbbbbbbbbbbbbbbb" },
-          { titulo: "Tarea 3", descripcion: "ccccccccccccccccc" },
-        ]}
+        tarjetas={pendientes}
         onTarjetaClick={(t) => setTareaSeleccionada(t)}
       />
 
       <SeccionCarrusel
         titulo="Tareas en Proceso"
-        tarjetas={[
-          { titulo: "Tarea 1", descripcion: "aaaaaaaaaa" },
-          { titulo: "Tarea 2", descripcion: "aaaaaaaaaaaasadsasdas" },
-        ]}
+        tarjetas={proceso}
         onTarjetaClick={(t) => setTareaSeleccionada(t)}
       />
 
       <SeccionCarrusel
         titulo="Tareas Hechas"
-        tarjetas={[
-          { titulo: "Tarea 1", descripcion: "aaaaaaaaaaaaaaaadsad" },
-          { titulo: "Tarea 2", descripcion: "aaaaaaaaaaa" },
-        ]}
+        tarjetas={hechas}
         onTarjetaClick={(t) => setTareaSeleccionada(t)}
       />
     </div>

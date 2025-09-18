@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import BarraLateral from "./BarraLateral";
 import Nav from "./nav";
@@ -7,15 +7,14 @@ import ChatWidget from "./chat";
 import Llamada from "./llamada";
 import { HiChevronLeft } from "react-icons/hi2";
 
-
-
 export default function ClasePage() {
   const [chatAbierto, setChatAbierto] = useState(false);
   const [llamadaActiva, setLlamadaActiva] = useState(false);
   const [menuAbierto, setMenuAbierto] = useState(false); 
+  const [menu, setMenu] = useState(false);
+  const [clase, setClase] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
-  const [menu, setMenu] = useState(false);
 
   const usuarioActual = {
     nombre: "Bautista",
@@ -31,9 +30,27 @@ export default function ClasePage() {
     { id: 6, nombre: "Agus", foto: "https://i.pravatar.cc/150?img=22", estado: "conectado" },
   ];
 
+  useEffect(() => {
+    if (!id) return;
+
+    fetch(`http://localhost:5000/api/clase/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          console.error("Clase no encontrada:", data.error);
+          navigate("/"); // redirigir si no existe
+        } else {
+          setClase(data);
+        }
+      })
+      .catch((err) => {
+        console.error("Error al cargar la clase:", err);
+        alert("No se pudo conectar con el servidor");
+      });
+  }, [id, navigate]);
+
   return (
     <div className="flex h-screen overflow-hidden relative">
-     
       <BarraLateral
         usuarioActual={usuarioActual}
         usuarios={usuarios}
@@ -45,12 +62,11 @@ export default function ClasePage() {
         menuAbierto={menuAbierto}
       />
 
-   
       <div className="flex-1 flex flex-col">
         <Nav />
         <div className="flex-1 overflow-auto overflow-x-none">
           {!llamadaActiva ? (
-            <Cont />
+            <Cont clase={clase} />
           ) : (
             <Llamada
               usuarioActual={usuarioActual}
@@ -61,10 +77,8 @@ export default function ClasePage() {
         </div>
       </div>
 
-     
       <ChatWidget isOpen={chatAbierto} onClose={() => setChatAbierto(false)} />
 
-    
       <aside
         className={`absolute left-72 top-[60px] bottom-0 w-80 
         bg-[#14182A] text-white shadow-2xl
@@ -73,13 +87,14 @@ export default function ClasePage() {
         z-10 overflow-y-auto`}
         aria-hidden={!menuAbierto}
       >
-       
         <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between fade-in">
-          <span className="text-sm font-semibold">Configuración de la clase</span>
+          <span className="text-sm font-semibold">
+            {clase?.nombre || "Configuración de la clase"}
+          </span>
           <button
             onClick={() => {
-              setMenuAbierto(false) 
-              setMenu(true)
+              setMenuAbierto(false);
+              setMenu(true);
             }}
             className="p-1 rounded hover:bg-white/10 focus:outline-none btn-animate transform hover:scale-110 transition-all duration-200"
             aria-label="Cerrar panel"
@@ -88,7 +103,6 @@ export default function ClasePage() {
           </button>
         </div>
 
-       
         <nav className="p-4 space-y-3">
           <button className="w-full text-left px-3 py-2 rounded hover:bg-white/5 transition-all duration-200 btn-animate transform hover:translate-x-2">
             Vista previa

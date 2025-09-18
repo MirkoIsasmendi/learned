@@ -1,17 +1,54 @@
 import React, { useState } from "react";
 import { HiChevronLeft } from "react-icons/hi";
+import { useParams } from "react-router-dom";
 
 export default function NuevaTarea() {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [archivo, setArchivo] = useState(null);
+  const { id } = useParams();
+  const handleGuardarTarea = async () => {
+    const profesorId = "prof002";
+    //localStorage.getItem("usuario_id")
+
+    if (!nombre || !descripcion || !id || !profesorId) {
+      alert("Faltan campos obligatorios");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/trabajos/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          titulo: nombre,
+          descripcion
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Tarea creada con éxito");
+        window.history.back();
+      } else {
+        alert(data.error || "Error al crear la tarea");
+      }
+    } catch (error) {
+      console.error("Error de red:", error);
+      alert("No se pudo conectar con el servidor");
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-[#0f0f25] text-white flex">
-      
+
       {/* Contenedor principal */}
       <div className="flex-1 p-8 relative bg-[#0f0f25]">
-        
+
         <button
           className="absolute text-gray-500 top-4 right-4 p-2 cursor-pointer hover:text-white btn-animate transform hover:scale-110 transition-all duration-200"
           onClick={() => window.history.back()}
@@ -46,9 +83,13 @@ export default function NuevaTarea() {
           <button className="px-4 py-2 rounded bg-gray-700 cursor-pointer hover:bg-gray-600 btn-animate transform hover:scale-105 transition-all duration-200">
             Guardar Borrador
           </button>
-          <button className="px-4 py-2 rounded bg-green-500 cursor-pointer hover:bg-green-600 btn-animate transform hover:scale-105 transition-all duration-200">
+          <button
+            onClick={handleGuardarTarea}
+            className="px-4 py-2 rounded bg-green-500 cursor-pointer hover:bg-green-600 btn-animate transform hover:scale-105 transition-all duration-200"
+          >
             Guardar y subir
           </button>
+
         </div>
       </div>
 

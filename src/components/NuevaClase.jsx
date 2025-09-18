@@ -5,18 +5,46 @@ export default function NuevaClase() {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [colorSeleccionado, setColorSeleccionado] = useState("");
-  
+
   const colores = [
     "bg-yellow-500", "bg-red-500", "bg-blue-500", "bg-pink-500", "bg-black",
     "bg-orange-500", "bg-white", "bg-purple-500", "bg-gray-500", "bg-green-500"
   ];
 
+  const handleSubmit = async () => {
+    const body = {
+      nombre,
+      descripcion,
+      profesor_id: "prof002" // Reemplazá esto con el ID real del profesor si lo tenés en contexto
+    };
+
+    try {
+      const res = await fetch("http://localhost:5000/api/clases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      const data = await res.json();
+
+      if (data.status === "ok") {
+        alert("Clase creada con éxito");
+        // Podés redirigir o limpiar el formulario acá
+      } else {
+        alert("Error al crear la clase");
+      }
+    } catch (err) {
+      console.error("Error al conectar con el backend:", err);
+      alert("Hubo un problema al crear la clase");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0f0f25] text-white flex">
-      
+
       {/* Contenedor principal */}
       <div className="flex-1 p-8 relative bg-[#0f0f25]">
-        
+
         <button
           className="absolute text-gray-500 top-4 right-4 p-2 cursor-pointer hover:text-white btn-animate transform hover:scale-110 transition-all duration-200"
           onClick={() => window.history.back()}
@@ -55,9 +83,13 @@ export default function NuevaClase() {
           <button className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 btn-animate transform hover:scale-105 transition-all duration-200">
             Cancelar
           </button>
-          <button className="px-4 py-2 rounded bg-green-500 hover:bg-green-600 btn-animate transform hover:scale-105 transition-all duration-200">
+          <button
+            className="px-4 py-2 rounded bg-green-500 hover:bg-green-600 btn-animate transform hover:scale-105 transition-all duration-200"
+            onClick={handleSubmit}
+          >
             Guardar y subir
           </button>
+
         </div>
       </div>
 
