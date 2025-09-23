@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-export default function RegistroProfesor({ setMode, onAuthSuccess }) {
+export default function RegistroProfesor({ onAuthSuccess }) {
+  const navigate = useNavigate(); // <-- Hook para navegar
   const [formData, setFormData] = useState({
     nombre: "",
     mail: "",
@@ -37,7 +39,8 @@ export default function RegistroProfesor({ setMode, onAuthSuccess }) {
 
       if (response.ok) {
         console.log("Registro exitoso:", data);
-        onAuthSuccess(data);
+        onAuthSuccess(data); // Puedes usar data.usuario_id si querés
+        navigate("/"); // <-- Redirige al Home tras registro
       } else {
         console.error("Error en el registro:", data.error);
         alert(data.error);
@@ -98,18 +101,17 @@ export default function RegistroProfesor({ setMode, onAuthSuccess }) {
       <div className="mt-6 flex justify-between text-white text-sm font-medium">
         <span
           className="cursor-pointer hover:text-gray-300"
-          onClick={() => setMode("registroAlumno")}
+          onClick={() => navigate("/Registro-Alumno")}
         >
           ¿Eres un alumno?
         </span>
         <span
           className="cursor-pointer hover:text-gray-300"
-          onClick={() => setMode("login")}
+          onClick={() => navigate("/Login")}
         >
           ¿Ya tienes cuenta?
         </span>
       </div>
-
     </div>
   );
 }

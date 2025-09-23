@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-export default function RegistroAlumno({ setMode, onAuthSuccess }) {
+export default function RegistroAlumno({ onAuthSuccess }) {
+  const navigate = useNavigate(); // <-- Hook para navegar
   const [formData, setFormData] = useState({
     nombre: "",
     mail: "",
@@ -38,6 +40,7 @@ export default function RegistroAlumno({ setMode, onAuthSuccess }) {
       if (response.ok) {
         console.log("Registro exitoso:", data);
         onAuthSuccess(data); // o data.usuario_id si querés usar el ID
+        navigate("/"); // <-- Redirigir al Home luego del registro
       } else {
         console.error("Error en el registro:", data.error);
         alert(data.error);
@@ -47,7 +50,6 @@ export default function RegistroAlumno({ setMode, onAuthSuccess }) {
       alert("No se pudo conectar con el servidor");
     }
   };
-
 
   return (
     <div className="bg-[#12122B] p-8 rounded-lg shadow-lg w-[400px] text-center fade-in">
@@ -99,18 +101,17 @@ export default function RegistroAlumno({ setMode, onAuthSuccess }) {
       <div className="mt-6 flex justify-between text-white text-sm font-medium">
         <span
           className="cursor-pointer hover:text-gray-300"
-          onClick={() => setMode("registroProfesor")}
+          onClick={() => navigate("/Registro-Profesor")}
         >
           ¿Eres un profesor?
         </span>
         <span
           className="cursor-pointer hover:text-gray-300"
-          onClick={() => setMode("login")}
+          onClick={() => navigate("/Login")}
         >
           ¿Ya tienes cuenta?
         </span>
       </div>
-
     </div>
   );
 }

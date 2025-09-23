@@ -1,6 +1,9 @@
+import { nav } from "framer-motion/client";
 import React, { useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 
 export default function Login({ setMode, onAuthSuccess }) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     mail: "",
     password: ""
@@ -74,17 +77,18 @@ export default function Login({ setMode, onAuthSuccess }) {
       <div className="mt-6 flex justify-between text-white text-sm font-medium">
         <span
           className="cursor-pointer hover:text-gray-300"
-          onClick={() => setMode("registroAlumno")}
+          onClick={() => navigate("/Registro-Alumno")}
         >
           ¿Eres un alumno?
         </span>
         <span
           className="cursor-pointer hover:text-gray-300"
-          onClick={() => setMode("registroProfesor")}
+          onClick={() => navigate("/Registro-Profesor")}
         >
           ¿Eres un profesor?
         </span>
       </div>
+
 
     </div>
   );
