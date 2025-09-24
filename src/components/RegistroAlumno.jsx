@@ -1,6 +1,28 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+function validarPassword(password) {
+  const errores = [];
+
+  if (password.length < 8) {
+    errores.push("Debe tener al menos 8 caracteres.");
+  }
+  if (!/[A-Z]/.test(password)) {
+    errores.push("Debe contener al menos una letra mayúscula.");
+  }
+  if (!/[a-z]/.test(password)) {
+    errores.push("Debe contener al menos una letra minúscula.");
+  }
+  if (!/\d/.test(password)) {
+    errores.push("Debe contener al menos un número.");
+  }
+  if (!/[!@#$%^&*(),.?\":{}|<>]/.test(password)) {
+    errores.push("Debe contener al menos un carácter especial.");
+  }
+
+  return errores;
+}
+
 export default function RegistroAlumno({ onAuthSuccess }) {
   const navigate = useNavigate(); // <-- Hook para navegar
   const [formData, setFormData] = useState({
@@ -22,6 +44,12 @@ export default function RegistroAlumno({ onAuthSuccess }) {
       return;
     }
 
+    const erroresPassword = validarPassword(formData.password);
+    if (erroresPassword.length > 0) {
+      alert("Error en la contraseña:\n" + erroresPassword.join("\n"));
+      return;
+    }
+
     try {
       const response = await fetch("http://localhost:5000/api/register/alumno", {
         method: "POST",
@@ -39,8 +67,8 @@ export default function RegistroAlumno({ onAuthSuccess }) {
 
       if (response.ok) {
         console.log("Registro exitoso:", data);
-        onAuthSuccess(data); // o data.usuario_id si querés usar el ID
-        navigate("/"); // <-- Redirigir al Home luego del registro
+        onAuthSuccess(data);
+        navigate("/");
       } else {
         console.error("Error en el registro:", data.error);
         alert(data.error);
@@ -50,6 +78,7 @@ export default function RegistroAlumno({ onAuthSuccess }) {
       alert("No se pudo conectar con el servidor");
     }
   };
+
 
   return (
     <div className="bg-[#12122B] p-8 rounded-lg shadow-lg w-[400px] text-center fade-in">

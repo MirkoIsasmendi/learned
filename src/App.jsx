@@ -11,13 +11,6 @@ import "./styles.css";
 
 
 function App() {
-  const usuarioTest = {
-    id: "prof002",
-    nombre: "Profesor Ejemplo",
-    foto: "/placeholder.jpg",
-    rol: "profesor"
-  };
-
   return (
     <Router>
       <Routes>
