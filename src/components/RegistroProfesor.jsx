@@ -35,21 +35,31 @@ export default function RegistroProfesor({ onAuthSuccess }) {
         })
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      let data;
+
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.error("Respuesta inválida del servidor:", text);
+        alert("Error inesperado del servidor");
+        return;
+      }
 
       if (response.ok) {
         console.log("Registro exitoso:", data);
-        onAuthSuccess(data); // Puedes usar data.usuario_id si querés
-        navigate("/"); // <-- Redirige al Home tras registro
+        if (onAuthSuccess) onAuthSuccess(data);
+        navigate("/");
       } else {
         console.error("Error en el registro:", data.error);
-        alert(data.error);
+        alert(data.error || "No se pudo completar el registro");
       }
     } catch (error) {
       console.error("Error de red:", error);
       alert("No se pudo conectar con el servidor");
     }
   };
+
 
   return (
     <div className="bg-[#12122B] p-8 rounded-lg shadow-lg w-[400px] text-center fade-in">

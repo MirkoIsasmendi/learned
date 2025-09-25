@@ -63,21 +63,31 @@ export default function RegistroAlumno({ onAuthSuccess }) {
         })
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      let data;
+
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.error("Respuesta inválida del servidor:", text);
+        alert("Error inesperado del servidor");
+        return;
+      }
 
       if (response.ok) {
         console.log("Registro exitoso:", data);
-        onAuthSuccess(data);
+        if (onAuthSuccess) onAuthSuccess(data);
         navigate("/");
       } else {
         console.error("Error en el registro:", data.error);
-        alert(data.error);
+        alert(data.error || "No se pudo completar el registro");
       }
     } catch (error) {
       console.error("Error de red:", error);
       alert("No se pudo conectar con el servidor");
     }
   };
+
 
 
   return (

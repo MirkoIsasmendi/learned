@@ -1,6 +1,5 @@
-import { nav } from "framer-motion/client";
 import React, { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function Login({ setMode, onAuthSuccess }) {
   const navigate = useNavigate();
@@ -28,21 +27,38 @@ export default function Login({ setMode, onAuthSuccess }) {
         })
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      let data;
+
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.error("Respuesta inválida del servidor:", text);
+        alert("Error al interpretar la respuesta del servidor");
+        return;
+      }
 
       if (response.ok) {
         console.log("Login exitoso:", data);
-        onAuthSuccess(data.usuario); // o lo que necesites hacer con el usuario
+
+        // Guardar token
+        localStorage.setItem("token", data.token);
+
+        // Ejecutar callback si existe
+        if (onAuthSuccess) {
+          onAuthSuccess(data.usuario);
+        }
+
+        navigate("/");
       } else {
         console.error("Error de login:", data.error);
-        alert(data.error); // podés mostrarlo en pantalla en vez de alert
+        alert(data.error || "Error desconocido");
       }
     } catch (error) {
       console.error("Error de red:", error);
       alert("No se pudo conectar con el servidor");
     }
   };
-
 
   return (
     <div className="bg-[#12122B] p-8 rounded-lg shadow-lg w-[400px] text-center fade-in">
@@ -88,8 +104,6 @@ export default function Login({ setMode, onAuthSuccess }) {
           ¿Eres un profesor?
         </span>
       </div>
-
-
     </div>
   );
 }
