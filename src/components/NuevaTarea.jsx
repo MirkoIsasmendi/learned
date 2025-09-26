@@ -1,17 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { HiChevronLeft } from "react-icons/hi";
 import { useParams } from "react-router-dom";
+import { AuthContext } from "../context/authcontext";
 
 export default function NuevaTarea() {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [archivo, setArchivo] = useState(null);
   const { id } = useParams();
-  const handleGuardarTarea = async () => {
-    const profesorId = "prof002";
-    //localStorage.getItem("usuario_id")
+  const { usuario } = useContext(AuthContext);
 
-    if (!nombre || !descripcion || !id || !profesorId) {
+  const handleGuardarTarea = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token || !usuario?.id || usuario.rol !== "profesor") {
+      alert("No estás autorizado para crear tareas");
+      return;
+    }
+
+    if (!nombre || !descripcion || !id) {
       alert("Faltan campos obligatorios");
       return;
     }
@@ -20,7 +27,8 @@ export default function NuevaTarea() {
       const response = await fetch(`http://localhost:5000/api/trabajos/${id}`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
           titulo: nombre,
@@ -42,13 +50,9 @@ export default function NuevaTarea() {
     }
   };
 
-
   return (
     <div className="min-h-screen bg-[#0f0f25] text-white flex">
-
-      {/* Contenedor principal */}
       <div className="flex-1 p-8 relative bg-[#0f0f25]">
-
         <button
           className="absolute text-gray-500 top-4 right-4 p-2 cursor-pointer hover:text-white btn-animate transform hover:scale-110 transition-all duration-200"
           onClick={() => window.history.back()}
@@ -89,11 +93,9 @@ export default function NuevaTarea() {
           >
             Guardar y subir
           </button>
-
         </div>
       </div>
 
-      {/* Contenedor negro con vista previa */}
       <div className="w-1/3 bg-black p-6">
         <h2 className="text-sm text-gray-400 mb-4 fade-in">Vista previa</h2>
         <div className="w-[240px] h-[200px] rounded-lg overflow-hidden shadow-md flex flex-col border border-gray-700 cursor-pointer tarea-card">

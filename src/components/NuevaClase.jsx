@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { HiChevronLeft } from "react-icons/hi";
+import { AuthContext } from "../context/authcontext";
 
 export default function NuevaClase() {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [colorSeleccionado, setColorSeleccionado] = useState("");
+  const { usuario } = useContext(AuthContext);
 
   const colores = [
     "bg-yellow-500", "bg-red-500", "bg-blue-500", "bg-pink-500", "bg-black",
@@ -12,16 +14,26 @@ export default function NuevaClase() {
   ];
 
   const handleSubmit = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token || !usuario?.id) {
+      alert("No estás autenticado correctamente");
+      return;
+    }
+
     const body = {
       nombre,
       descripcion,
-      profesor_id: "prof002" // Reemplazá esto con el ID real del profesor si lo tenés en contexto
+      profesor_id: usuario.id
     };
 
     try {
       const res = await fetch("http://localhost:5000/api/clases", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify(body)
       });
 
@@ -29,7 +41,9 @@ export default function NuevaClase() {
 
       if (data.status === "ok") {
         alert("Clase creada con éxito");
-        // Podés redirigir o limpiar el formulario acá
+        setNombre("");
+        setDescripcion("");
+        setColorSeleccionado("");
       } else {
         alert("Error al crear la clase");
       }
@@ -41,10 +55,7 @@ export default function NuevaClase() {
 
   return (
     <div className="min-h-screen bg-[#0f0f25] text-white flex">
-
-      {/* Contenedor principal */}
       <div className="flex-1 p-8 relative bg-[#0f0f25]">
-
         <button
           className="absolute text-gray-500 top-4 right-4 p-2 cursor-pointer hover:text-white btn-animate transform hover:scale-110 transition-all duration-200"
           onClick={() => window.history.back()}
@@ -89,11 +100,9 @@ export default function NuevaClase() {
           >
             Guardar y subir
           </button>
-
         </div>
       </div>
 
-      {/* Contenedor negro con vista previa */}
       <div className="w-1/3 bg-black p-6">
         <h2 className="text-sm text-gray-400 mb-4 fade-in">Vista previa</h2>
         <div className="w-[240px] h-[200px] rounded-lg overflow-hidden shadow-md flex flex-col border border-gray-700 cursor-pointer tarea-card">

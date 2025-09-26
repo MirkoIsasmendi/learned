@@ -48,8 +48,7 @@ export default function RegistroProfesor({ onAuthSuccess }) {
 
       if (response.ok) {
         console.log("Registro exitoso:", data);
-        if (onAuthSuccess) onAuthSuccess(data);
-        navigate("/");
+        navigate("/Login");
       } else {
         console.error("Error en el registro:", data.error);
         alert(data.error || "No se pudo completar el registro");

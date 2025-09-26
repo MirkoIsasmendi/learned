@@ -10,12 +10,23 @@ export const AuthProvider = ({ children }) => {
     if (!token) return;
 
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
+      // Decodificar base64url correctamente
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+
+      const payload = JSON.parse(jsonPayload);
       const usuarioId = payload?.usuario_id;
       const rol = payload?.rol;
+      const nombre = payload?.nombre;
 
       if (usuarioId) {
-        setUsuario({ id: usuarioId, rol });
+        setUsuario({ id: usuarioId, rol: rol, nombre: nombre });// Ajusta según los campos reales del token
       }
     } catch (err) {
       console.error("Token inválido:", err);
