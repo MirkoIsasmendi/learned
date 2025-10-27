@@ -1,16 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { CgClose } from "react-icons/cg";
 import { useNavigate, useParams } from "react-router-dom";
+import { AuthContext } from "../context/authcontext";
 
 export default function Nav() {
+  const API_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
   const { id } = useParams();
   const [nombreClase, setNombreClase] = useState("Nombre de la Clase");
+  const { usuario } = useContext(AuthContext);
+
+  useEffect(() => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+    }, [usuario, navigate]);
 
   useEffect(() => {
     if (!id) return;
 
-    fetch(`http://localhost:5000/api/clase/${id}`)
+    fetch(`${API_URL}/api/clase/${id}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.error) {
@@ -37,12 +48,14 @@ export default function Nav() {
       <h1 className="text-xl text-white">{nombreClase}</h1>
 
       <div className="flex items-center gap-4">
-        <button
-          onClick={handleCrearTarea}
-          className="px-4 py-1 rounded bg-green-600 cursor-pointer text-white hover:bg-green-700 btn-animate transform hover:scale-102 transition-all duration-200"
-        >
-          Crear Tarea
-        </button>
+        {usuario.rol === "profesor" && (
+          <button
+            onClick={handleCrearTarea}
+            className="px-4 py-1 rounded bg-green-600 cursor-pointer text-white hover:bg-green-700 btn-animate transform hover:scale-102 transition-all duration-200"
+          >
+            Crear Tarea
+          </button>
+        )}
 
         <button
           onClick={handleClose}

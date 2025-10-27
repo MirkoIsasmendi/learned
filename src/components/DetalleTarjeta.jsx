@@ -5,6 +5,9 @@ import { HiChevronLeft } from "react-icons/hi";
 const DetalleTarea = ({ tarea, onClose }) => {
   const [descripcion, setDescripcion] = useState("");
   const [archivos, setArchivos] = useState([]);
+  const [archivosRemotos, setArchivosRemotos] = useState([]);
+
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   // Maneja pegar archivos en la caja de abajo
   const handlePaste = (e) => {
@@ -21,6 +24,52 @@ const DetalleTarea = ({ tarea, onClose }) => {
       setArchivos((prev) => [...prev, ...nuevosArchivos]);
     }
   };
+
+  const fetchArchivosRemotos = async () => {
+    if (!tarea || !tarea.id) return;
+    try {
+      const res = await fetch(`${API_URL}/api/trabajos/${tarea.id}/archivos`);
+      if (res.ok) {
+        const data = await res.json();
+        setArchivosRemotos(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error('Error listando archivos remotos', err);
+    }
+  };
+
+  // Subir archivos seleccionados en `archivos`
+  const uploadFiles = async () => {
+    if (!tarea || !tarea.id) return alert('Tarea inválida');
+    if (archivos.length === 0) return alert('No hay archivos para subir');
+
+    const form = new FormData();
+    archivos.forEach((f) => form.append('files', f));
+
+    try {
+      const res = await fetch(`${API_URL}/api/trabajos/${tarea.id}/archivos`, {
+        method: 'POST',
+        body: form
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert('Archivos subidos correctamente');
+        setArchivos([]);
+        await fetchArchivosRemotos();
+      } else {
+        console.error('Error subiendo archivos', data);
+        alert(data.error || 'Error al subir archivos');
+      }
+    } catch (err) {
+      console.error('Error de red al subir archivos', err);
+      alert('Error de red al subir archivos');
+    }
+  };
+
+  // Ejecutar listado al montar
+  useState(() => {
+    fetchArchivosRemotos();
+  });
 
   return (
     <div className="p-6 bg-[#1B1B2F] text-white min-h-screen fade-in">
@@ -119,6 +168,14 @@ const DetalleTarea = ({ tarea, onClose }) => {
                 </div>
               ))
             )}
+            <div className="mt-4">
+              <button
+                onClick={uploadFiles}
+                className="w-full px-3 py-2 bg-green-500 rounded text-white hover:bg-green-600 transition"
+              >
+                Subir archivos
+              </button>
+            </div>
           </div>
         </div>
 
@@ -131,6 +188,21 @@ const DetalleTarea = ({ tarea, onClose }) => {
             Guardar y subir
           </button>
         </div>
+      </div>
+
+      {/* Lista de archivos subidos */}
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-2">Archivos subidos</h3>
+        {archivosRemotos.length === 0 ? (
+          <p className="text-gray-400">No hay archivos subidos</p>
+        ) : (
+          archivosRemotos.map((f, i) => (
+            <div key={i} className="flex items-center justify-between bg-[#141426] p-2 rounded mb-2">
+              <span className="text-sm truncate">{f.filename}</span>
+              <a href={f.url} className="text-green-400 hover:underline" target="_blank" rel="noreferrer">Descargar</a>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

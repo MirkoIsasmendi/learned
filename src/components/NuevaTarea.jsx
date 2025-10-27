@@ -7,6 +7,7 @@ export default function NuevaTarea() {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [archivo, setArchivo] = useState(null);
+  const API_URL = import.meta.env.VITE_API_URL;
   const { id } = useParams();
   const { usuario } = useContext(AuthContext);
 
@@ -22,9 +23,8 @@ export default function NuevaTarea() {
       alert("Faltan campos obligatorios");
       return;
     }
-
     try {
-      const response = await fetch(`http://localhost:5000/api/trabajos/${id}`, {
+      const response = await fetch(`${API_URL}/api/trabajos/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

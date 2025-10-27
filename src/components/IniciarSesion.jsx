@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/authcontext";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Login({ setMode, onAuthSuccess }) {
   const navigate = useNavigate();
+  const { setUsuario } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     mail: "",
     password: ""
@@ -16,7 +20,7 @@ export default function Login({ setMode, onAuthSuccess }) {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:5000/api/login", {
+  const response = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -44,11 +48,22 @@ export default function Login({ setMode, onAuthSuccess }) {
         // Guardar token
         localStorage.setItem("token", data.token);
 
+        // Actualizar contexto para que otros componentes lo vean sin recargar
+        try {
+          if (setUsuario) {
+            // use usuario from response if available, else trigger refreshFromToken elsewhere
+            if (data.usuario) setUsuario(data.usuario);
+          }
+        } catch (err) {
+          console.warn("No se pudo setUsuario en el contexto:", err);
+        }
+
         // Ejecutar callback si existe
         if (onAuthSuccess) {
           onAuthSuccess(data.usuario);
         }
 
+        // Navegar solo después de actualizar estado/contexto
         navigate("/");
       } else {
         console.error("Error de login:", data.error);
@@ -61,7 +76,8 @@ export default function Login({ setMode, onAuthSuccess }) {
   };
 
   return (
-    <div className="bg-[#12122B] p-8 rounded-lg shadow-lg w-[400px] text-center fade-in">
+  <div className="flex items-center justify-center min-h-screen bg-[#0D0D1A] px-4">
+    <div className="bg-[#12122B] p-6 sm:p-8 rounded-lg shadow-lg w-full max-w-md text-center fade-in">
       <h2 className="text-white text-2xl font-bold">Iniciar Sesión</h2>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
@@ -90,7 +106,7 @@ export default function Login({ setMode, onAuthSuccess }) {
         </button>
       </form>
 
-      <div className="mt-6 flex justify-between text-white text-sm font-medium">
+      <div className="mt-6 flex flex-col sm:flex-row justify-between text-white text-sm font-medium gap-2 sm:gap-0">
         <span
           className="cursor-pointer hover:text-gray-300"
           onClick={() => navigate("/Registro-Alumno")}
@@ -105,5 +121,7 @@ export default function Login({ setMode, onAuthSuccess }) {
         </span>
       </div>
     </div>
-  );
+  </div>
+);
+
 }

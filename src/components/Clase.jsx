@@ -2,11 +2,13 @@ import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BarraLateral from "./BarraLateral";
 import Nav from "./nav";
-import Cont from "./contenedor";
+import Cont from "./contenedor2";
 import ChatWidget from "./chat";
 import Llamada from "./llamada";
 import { HiChevronLeft } from "react-icons/hi2";
 import { AuthContext } from "../context/authcontext";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ClasePage() {
   const [chatAbierto, setChatAbierto] = useState(false);
@@ -76,6 +78,64 @@ export default function ClasePage() {
       </div>
     );
   }
+
+  const handleAbandonarClase = async () => {
+    const token = localStorage.getItem("token");
+    if (!token || !usuario?.id || !clase?.id) {
+      alert("No se puede abandonar la clase. Faltan datos.");
+      return;
+    }
+    if (!window.confirm("¿Seguro que quieres abandonar la clase?")) return;
+    try {
+      const res = await fetch(`${API_URL}/api/clases/abandonar`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ usuario_id: usuario.id, clase_id: clase.id })
+      });
+      const data = await res.json();
+      if (res.ok && data.status === "ok") {
+        alert("Has abandonado la clase");
+        navigate("/");
+      } else {
+        alert(data.error || "No se pudo abandonar la clase");
+      }
+    } catch (err) {
+      console.error("Error al abandonar la clase:", err);
+      alert("Error de red al abandonar la clase");
+    }
+  };
+
+  // Borrar clase
+  const handleBorrarClase = async () => {
+    const token = localStorage.getItem("token");
+    if (!token || !usuario?.id || !clase?.id) {
+      alert("No se puede borrar la clase. Faltan datos.");
+      return;
+    }
+    if (!window.confirm("¿Seguro que quieres borrar la clase? Esta acción no se puede deshacer.")) return;
+    try {
+      const res = await fetch(`${API_URL}/api/clases/eliminar`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ clase_id: clase.id})
+      });
+      const data = await res.json();
+      if (res.ok && data.status === "ok") {
+        alert("Clase borrada correctamente");
+        navigate("/");
+      } else {
+        alert(data.error || "No se pudo borrar la clase");
+      }
+    } catch (err) {
+      console.error("Error al borrar la clase:", err);
+      alert("Error de red al borrar la clase");
+    }
+  };
 
   const usuarioActual = {
     nombre: usuario.nombre || "Usuario",
@@ -201,7 +261,7 @@ export default function ClasePage() {
       <ChatWidget isOpen={chatAbierto} onClose={() => setChatAbierto(false)} />
 
       <aside
-        className={`absolute left-72 top-[60px] bottom-0 w-80 
+        className={`absolute left-[21vw] top-[60px] bottom-0 w-80 
         bg-[#14182A] text-white shadow-2xl
         transform transition-transform duration-300 ease-out
         ${menuAbierto ? "translate-x-0 slide-in-left" : menu ? "slide-out-left" : "-translate-x-full"}
@@ -242,7 +302,17 @@ export default function ClasePage() {
 
           <div className="h-2" />
 
-          <button className="w-full text-left px-3 py-2 rounded text-red-400 hover:text-red-300 transition-all duration-200 btn-animate transform hover:translate-x-2">
+          <button
+            onClick={handleAbandonarClase}
+            className="w-full text-left px-3 py-2 rounded text-red-400 hover:text-red-300 transition-all duration-200 btn-animate transform hover:translate-x-2"
+          >
+            Abandonar clase
+          </button>
+
+          <button
+            onClick={handleBorrarClase}
+            className="w-full text-left px-3 py-2 rounded text-red-400 hover:text-red-300 transition-all duration-200 btn-animate transform hover:translate-x-2"
+          >
             Borrar clase
           </button>
         </nav>

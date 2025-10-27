@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { HiPhoneXMark, HiVideoCamera } from "react-icons/hi2";
 import { TbHeadphonesFilled, TbHeadphonesOff } from "react-icons/tb";
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { MdOutlineScreenShare } from "react-icons/md";
+import { io } from "socket.io-client";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Llamada({ usuarioActual, usuarios, onFinalizar }) {
   // Agrego id a usuarioActual para evitar problemas de key
@@ -19,6 +22,78 @@ export default function Llamada({ usuarioActual, usuarios, onFinalizar }) {
     });
     return inicial;
   });
+
+  // Socket for call signaling
+  const socketRef = useRef(null);
+
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    socketRef.current = io(API_URL, { transports: ["websocket", "polling"], auth: token ? { token } : undefined });
+
+    const s = socketRef.current;
+
+    s.on('connect', () => {
+      console.log('Call signaling socket connected', s.id);
+    });
+
+    s.on('call_request', (data) => {
+      console.log('Incoming call_request', data);
+      // data: { from, usuario, ... }
+      // For now we'll just auto-accept to demonstrate signaling; in production show UI to accept/reject
+      // Emit call_response with accept=true
+      const response = { to: data.from, from: s.id, accept: true };
+      s.emit('call_response', response);
+    });
+
+    s.on('call_response', (data) => {
+      console.log('Call response', data);
+      // handle remote acceptance/rejection
+    });
+
+    s.on('webrtc_offer', (data) => {
+      console.log('Received offer', data);
+      // here you would set remote description and create an answer
+    });
+
+    s.on('webrtc_answer', (data) => {
+      console.log('Received answer', data);
+      // set remote description for answer
+    });
+
+    s.on('webrtc_ice_candidate', (data) => {
+      console.log('Received ice candidate', data);
+      // add candidate to peer connection
+    });
+
+    s.on('disconnect', (reason) => {
+      console.log('Call signaling socket disconnected', reason);
+    });
+
+    return () => {
+      if (s) {
+        s.removeAllListeners();
+        s.disconnect();
+      }
+      socketRef.current = null;
+    };
+  }, []);
+
+  const iniciarLlamada = (targetSocketId) => {
+    const s = socketRef.current;
+    if (!s || !s.connected) {
+      console.warn('Socket not connected yet, trying to connect...');
+      s && s.connect();
+      s && s.once('connect', () => iniciarLlamada(targetSocketId));
+      return;
+    }
+
+    const payload = {
+      to: targetSocketId,
+      from: s.id,
+      usuario: usuarioActual?.nombre || 'Origin'
+    };
+    s.emit('call_request', payload);
+  };
 
   const cambiarPrincipal = (nuevoPrincipal) => {
     if (nuevoPrincipal.id === principal.id) return;

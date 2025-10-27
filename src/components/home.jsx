@@ -3,20 +3,41 @@ import { Link, useNavigate } from "react-router-dom";
 import { BsHexagon } from "react-icons/bs";
 import { AuthContext } from "../context/authcontext";
 
+// Loader simple
+function Loader() {
+  return (
+    <div className="flex items-center justify-center h-screen bg-[#0B0B13] text-white">
+      <div className="text-center">
+        <div className="loader mb-4" />
+        <p className="text-lg">Cargando usuario...</p>
+      </div>
+    </div>
+  );
+}
 export default function Home() {
   const navigate = useNavigate();
   const { usuario } = useContext(AuthContext);
   const [notificaciones, setNotificaciones] = useState([]);
   const [clases, setClases] = useState([]);
   const [cargando, setCargando] = useState(false);
+  const [usuarioListo, setUsuarioListo] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token || usuario === null) return;
-    if (!usuario?.id) {
+    if (!token) {
       navigate("/login");
       return;
     }
+    if (usuario === null || typeof usuario === "undefined") {
+      setUsuarioListo(false);
+      return;
+    }
+    if (!usuario?.id) {
+      // Si usuario está definido pero no tiene id, espera a que se complete
+      setUsuarioListo(false);
+      return;
+    }
+    setUsuarioListo(true);
     cargarDatos();
   }, [usuario, navigate]);
 
@@ -146,18 +167,14 @@ export default function Home() {
     navigate("/login");
   };
 
-  if (!usuario) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-[#0B0B13] text-white">
-        <p>Cargando usuario...</p>
-      </div>
-    );
+  if (!usuarioListo) {
+    return <Loader />;
   }
 
   return (
-    <div className="flex h-screen bg-[#0B0B13] text-white font-sans">
+    <div className="flex flex-col lg:flex-row h-screen bg-[#0B0B13] text-white font-sans">
       {/* Sidebar izquierdo */}
-      <div className="w-[320px] border-r border-[#1E1E2D] flex flex-col justify-between">
+      <div className="w-full lg:w-[320px] border-b lg:border-b-0 lg:border-r border-[#1E1E2D] flex flex-col justify-between">
         <div className="p-4 flex-1 overflow-y-auto max-h-[calc(100vh-80px)]">
           <h2 className="text-white font-semibold text-[15px] mb-4 fade-in">Notifications</h2>
 
@@ -171,7 +188,7 @@ export default function Home() {
                 <h3 className="text-[20px] font-bold mb-1">{noti.titulo}</h3>
                 <p className="text-[14px] text-gray-300 mb-2">{noti.tipo}</p>
                 <p className="text-[13px] leading-4">{noti.descripcion}</p>
-                <div className="flex justify-end mt-2 space-x-2">
+                <div className="flex flex-wrap justify-end mt-2 gap-2">
                   {noti.tipo === "invitacion" ? (
                     <>
                       <button
@@ -201,7 +218,7 @@ export default function Home() {
           )}
         </div>
 
-        <div className="bg-[#0B0B13] border-t border-[#1E1E2D] p-3 flex items-center justify-between">
+        <div className="bg-[#0B0B13] border-t border-[#1E1E2D] p-3 flex flex-col sm:flex-row items-center justify-between gap-4">
           <BsHexagon className="text-2xl text-white hover:text-gray-400 cursor-pointer" />
           <div className="flex items-center gap-3">
             <span className="text-white text-sm font-semibold">{usuario.nombre}</span>
@@ -222,7 +239,7 @@ export default function Home() {
 
       {/* Contenido derecho */}
       <div className="flex-1 p-4 flex flex-col">
-        <div className="flex justify-between mb-4 fade-in">
+        <div className="flex flex-col sm:flex-row justify-between mb-4 fade-in gap-2">
           <h2 className="text-white font-semibold text-[15px]">Class Rooms</h2>
           <h2 className="text-white font-semibold text-[15px]">Learned</h2>
         </div>
@@ -245,7 +262,7 @@ export default function Home() {
           )}
         </div>
 
-        <div className="border-t border-white flex gap-8 mt-4 justify-end pt-4">
+        <div className="border-t border-white flex flex-col sm:flex-row gap-4 mt-4 justify-end pt-4">
           <button
             onClick={handleUnirmeClase}
             className="px-4 py-2 rounded bg-[#2C2C3E] text-white hover:bg-[#3d3d52] transition-all duration-200"

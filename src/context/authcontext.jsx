@@ -1,13 +1,16 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useState, useCallback } from "react";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(null);
 
-  useEffect(() => {
+  const refreshFromToken = useCallback(() => {
     const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!token) {
+      setUsuario(null);
+      return;
+    }
 
     try {
       // Decodificar base64url correctamente
@@ -26,15 +29,33 @@ export const AuthProvider = ({ children }) => {
       const nombre = payload?.nombre;
 
       if (usuarioId) {
-        setUsuario({ id: usuarioId, rol: rol, nombre: nombre });// Ajusta según los campos reales del token
+        setUsuario({ id: usuarioId, rol: rol, nombre: nombre }); // Ajusta según los campos reales del token
       }
     } catch (err) {
       console.error("Token inválido:", err);
+      setUsuario(null);
     }
   }, []);
 
+  // Inicializar desde token en el primer render
+  useEffect(() => {
+    refreshFromToken();
+  }, [refreshFromToken]);
+
+  // Escuchar cambios en localStorage para sincronizar entre pestañas o cuando
+  // otras partes de la app actualicen el token.
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === "token") {
+        refreshFromToken();
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [refreshFromToken]);
+
   return (
-    <AuthContext.Provider value={{ usuario }}>
+    <AuthContext.Provider value={{ usuario, setUsuario, refreshFromToken }}>
       {children}
     </AuthContext.Provider>
   );

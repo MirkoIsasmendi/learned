@@ -12,6 +12,7 @@ export default function NuevaClase() {
     "bg-yellow-500", "bg-red-500", "bg-blue-500", "bg-pink-500", "bg-black",
     "bg-orange-500", "bg-white", "bg-purple-500", "bg-gray-500", "bg-green-500"
   ];
+const API_URL = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async () => {
     const token = localStorage.getItem("token");
@@ -28,7 +29,7 @@ export default function NuevaClase() {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/clases", {
+      const res = await fetch(`${API_URL}/api/clases`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
