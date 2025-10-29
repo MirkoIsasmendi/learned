@@ -1,15 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useTheme } from "../context/themecontext";
 import { HiChevronLeft } from "react-icons/hi";
-
-/**
- * ConfiguracionUsuario
- * - Guarda automáticamente usuario, voz y notificaciones en localStorage
- * - Restaura estado al recargar (excepto la sección: siempre inicia en "Mi cuenta")
- * - Guarda la foto de perfil en base64 para persistencia
- * - Incluye sección "Apariencia" (preview) y "Atajos del teclado" (editable via modal)
-*/
+import { useNavigate } from "react-router-dom";
 
 export default function ConfiguracionUsuario() {
+  const navigate = useNavigate();
+
   // Siempre inicia en "Mi cuenta" como pediste
   const [seccion, setSeccion] = useState("Mi cuenta");
 
@@ -101,6 +97,8 @@ export default function ConfiguracionUsuario() {
     "Responder llamada": "Ctrl+Enter",
     "Rechazar llamada": "Esc",
     "Obtener ayuda": "F1",
+    "Drag and Drop": "Left Click",
+    "Entrar a tareas": "Right Click"
   };
 
   const [atajos, setAtajos] = useState(atajosDefault);
@@ -112,6 +110,8 @@ export default function ConfiguracionUsuario() {
   const captureRef = useRef(null);
 
   // ---------- Cargar desde localStorage al montar ----------
+  const theme = useTheme();
+
   useEffect(() => {
     try {
       const storedUsuario = localStorage.getItem(LS_KEYS.USUARIO);
@@ -145,6 +145,20 @@ export default function ConfiguracionUsuario() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Ensure apariencia.modoPreview follows ThemeContext mode when available
+  useEffect(() => {
+    try {
+      if (theme && typeof theme.mode === 'string') {
+        setApariencia((prev) => {
+          if (prev.modoPreview !== theme.mode) return { ...prev, modoPreview: theme.mode };
+          return prev;
+        });
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [theme && theme.mode]);
 
   // ---------- Sincronizar cambios automáticamente a localStorage ----------
   useEffect(() => {
@@ -297,6 +311,13 @@ export default function ConfiguracionUsuario() {
   const setModoPreview = (modo) =>
     setApariencia((prev) => ({ ...prev, modoPreview: modo }));
 
+  // integrate with global theme provider if available
+  useEffect(() => {
+    if (theme && typeof theme.setMode === 'function') {
+      theme.setMode(apariencia.modoPreview || 'oscuro');
+    }
+  }, [apariencia.modoPreview, theme]);
+
   const setDensidad = (d) => setApariencia((prev) => ({ ...prev, densidad: d }));
 
   const setAcento = (hex) => setApariencia((prev) => ({ ...prev, acento: hex }));
@@ -321,7 +342,7 @@ export default function ConfiguracionUsuario() {
       {/* Flecha para volver */}
       <button
         className="absolute top-4 right-4 text-gray-400 hover:text-white transition-all duration-200"
-        onClick={() => window.history.back()}
+        onClick={() => navigate("/")}
       >
         <HiChevronLeft className="text-2xl" />
       </button>
@@ -648,7 +669,7 @@ export default function ConfiguracionUsuario() {
                   { id: "todos", label: "Recibir de todos los mensajes" },
                   {
                     id: "menciones",
-                    label: "Solo menciones y mensajes directos",
+                    label: "Solo menciones",
                   },
                   { id: "ninguna", label: "Ninguna" },
                 ].map((opcion) => (

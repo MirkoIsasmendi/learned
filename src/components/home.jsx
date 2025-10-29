@@ -219,7 +219,9 @@ export default function Home() {
         </div>
 
         <div className="bg-[#0B0B13] border-t border-[#1E1E2D] p-3 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <BsHexagon className="text-2xl text-white hover:text-gray-400 cursor-pointer" />
+          <button onClick={() => navigate("/configuracion")}>
+            <BsHexagon className="text-2xl text-white hover:text-gray-400 cursor-pointer" />
+          </button>
           <div className="flex items-center gap-3">
             <span className="text-white text-sm font-semibold">{usuario.nombre}</span>
             <img

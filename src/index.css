@@ -1,0 +1,128 @@
+:root {
+	--bg: #ffffff;
+	--text: #111827;
+	--surface: #f8fafc;
+	--accent: #00FFA0;
+	--primary: #2563eb;
+	--danger: #ff3b6e;
+	--success: #16a34a;
+	--muted-border: rgba(0,0,0,0.08);
+}
+
+html.dark {
+	--bg: #0B0B13;
+	--text: #E6E6E6;
+	--surface: #141421;
+	--accent: #00FFA0;
+}
+
+/* Apply base background/text colors; components that use Tailwind arbitrary colors
+	 may need to be migrated to variables for full coverage. This provides a global
+	 light/dark baseline and a CSS variable for accent color. */
+html, body, #root {
+	height: 100%;
+}
+
+body {
+	background-color: var(--bg);
+	color: var(--text);
+	transition: background-color .18s ease, color .18s ease;
+}
+
+/* Utility to use accent color */
+.accent {
+	color: var(--accent) !important;
+}
+
+/* Provide a surface background utility */
+.surface {
+	background-color: var(--surface) !important;
+	color: var(--text) !important;
+}
+
+/* Ensure some semantic elements inherit text color */
+h1, h2, h3, h4, h5, h6, p, span, a, button, input, textarea, label, div {
+	color: inherit;
+}
+
+/* Light-theme overrides for Tailwind arbitrary color classes used in the app.
+	 These map hard-coded dark hex classes to the CSS variables so the light
+	 theme actually looks correct without refactoring every component. */
+html:not(.dark) {
+	/* page-level dark backgrounds -> page bg */
+	--panel-bg: var(--surface);
+}
+
+html:not(.dark) .bg-\[\#0B0B13\],
+html:not(.dark) .bg-\[\#0F0F1A\],
+html:not(.dark) .bg-\[\#0F0F13\] {
+	background-color: var(--bg) !important;
+	color: var(--text) !important;
+}
+
+/* Common panel/card dark hexes -> surface in light mode */
+html:not(.dark) .bg-\[\#141421\],
+html:not(.dark) .bg-\[\#1A1A2E\],
+html:not(.dark) .bg-\[\#1E1E28\],
+html:not(.dark) .bg-\[\#121217\],
+html:not(.dark) .bg-\[\#0F0F14\],
+html:not(.dark) .bg-\[\#0F0F14\],
+html:not(.dark) .bg-\[\#1a1a35\],
+html:not(.dark) .bg-\[\#14182A\],
+html:not(.dark) .bg-\[\#0B0B13\] {
+	background-color: var(--surface) !important;
+	color: var(--text) !important;
+}
+
+/* Map white text used in dark theme to the text color in light mode */
+html:not(.dark) .text-white {
+	color: var(--text) !important;
+}
+
+/* Borders that were bright in dark theme should be subdued in light */
+html:not(.dark) .border-\[\#F3F3F3\] {
+	border-color: rgba(0,0,0,0.08) !important;
+}
+
+	/* Buttons and common semantic colors */
+	html:not(.dark) .bg-blue-600,
+	html:not(.dark) .bg-\[\#2563EB\],
+	html:not(.dark) .hover\:bg-blue-500,
+	html:not(.dark) .bg-\[\#1E40AF\] {
+		background-color: var(--primary) !important;
+		color: #fff !important;
+	}
+
+	html:not(.dark) .bg-green-500,
+	html:not(.dark) .hover\:bg-green-400,
+	html:not(.dark) .bg-\[\#16A34A\] {
+		background-color: var(--success) !important;
+		color: #000 !important;
+	}
+
+	html:not(.dark) .bg-red-600,
+	html:not(.dark) .bg-\[\#FF3B6E\],
+	html:not(.dark) .hover\:bg-red-500 {
+		background-color: var(--danger) !important;
+		color: #fff !important;
+	}
+
+	/* Muted borders */
+	html:not(.dark) .border-gray-700,
+	html:not(.dark) .border-\[\#222236\],
+	html:not(.dark) .border-\[\#1E1E28\],
+	html:not(.dark) .border-gray-700 {
+		border-color: var(--muted-border) !important;
+	}
+
+	/* Input / card light backgrounds used in forms */
+	html:not(.dark) .bg-\[\#12122B\],
+	html:not(.dark) .bg-\[\#121217\],
+	html:not(.dark) .bg-\[\#12122B\],
+	html:not(.dark) .bg-\[\#141426\] {
+		background-color: var(--surface) !important;
+		color: var(--text) !important;
+	}
+
+
+
