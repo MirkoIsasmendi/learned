@@ -1,20 +1,93 @@
 :root {
-	--bg: #ffffff;
-	--text: #111827;
-	--surface: #f8fafc;
-	--accent: #00FFA0;
-	--primary: #2563eb;
-	--danger: #ff3b6e;
-	--success: #16a34a;
-	--muted-border: rgba(0,0,0,0.08);
+	/* Modern light theme (more neutral, subtle contrast) */
+	--bg: #F7FAFF; /* very light blue-white */
+	--text: #0F1724; /* deep slate for readable text */
+	--surface: #FFFFFF; /* card / input background */
+	--accent: #7C5CFF; /* modern violet accent for light theme */
+	--primary: #2563EB; /* keep primary for components that depend on it */
+	--danger: #EF4444;
+	--success: #10B981;
+	--muted-border: rgba(15,23,36,0.06);
+
+	/* light-mode panel shades */
+	--surface-1: #FFFFFF; /* main panels */
+	--surface-2: #F3F6FA; /* subtle elevated surface */
+	--panel-01: #FFFFFF;
+	--panel-02: #F8FAFF;
 }
 
+	/* secondary text token used for muted/secondary labels */
+	:root {
+		--text2: #6B7280; /* slate-500 for light theme */
+	}
+
+/* Default 'initial' dark theme: restored to the original darker palette you used previously.
+	 This is the app's dark-mode baseline (keeps the old accent you had: #00FFA0). */
 html.dark {
-	--bg: #0B0B13;
-	--text: #E6E6E6;
-	--surface: #141421;
-	--accent: #00FFA0;
+	--bg: #0B0B13; /* deep page background */
+	--text: #E6E6E6; /* primary text */
+	--text2: #9CA3AF; /* secondary text */
+	--surface: #141421; /* main card/surface */
+	--accent: #00FFA0; /* original bright green accent (restored) */
+
+	/* dark-mode surface shades (restored to your initial look) */
+	--surface-1: #141421; /* general surface */
+	--surface-2: #121217; /* slightly different panel */
+	--panel-01: #121217; /* panel base */
+	--panel-02: #1E1E28; /* card / elevated */
 }
+
+	/* Utility classes for muted/secondary text that follow current theme */
+	.muted {
+		color: var(--text2) !important;
+	}
+
+	/* For subtle backgrounds inside cards (secondary surface) */
+	.surface-2 {
+		background-color: var(--surface-2) !important;
+	}
+
+	/* Button utilities that follow theme variables */
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.5rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: transform .12s ease, background-color .12s ease, color .12s ease;
+	}
+
+	.btn:active { transform: translateY(1px); }
+
+	/* Primary action uses accent. Foreground chosen to be readable against accent. */
+	.btn-primary {
+		background: var(--accent) !important;
+		color: var(--btn-primary-foreground, #000) !important;
+	}
+
+	/* Danger variant */
+	.btn-danger {
+		background: var(--danger) !important;
+		color: #fff !important;
+	}
+
+	/* Secondary uses a panel/card background */
+	.btn-secondary {
+		/* use primary token so "entrada" color can drive secondary buttons */
+		background: var(--primary) !important;
+		color: var(--btn-primary-foreground, #000) !important;
+		border: 1px solid rgba(0,0,0,0.06) !important;
+	}
+
+	/* Neutral ghost/outline */
+	.btn-ghost {
+		background: transparent !important;
+		color: var(--text) !important;
+		border: 1px solid transparent !important;
+	}
 
 /* Apply base background/text colors; components that use Tailwind arbitrary colors
 	 may need to be migrated to variables for full coverage. This provides a global
@@ -36,13 +109,25 @@ body {
 
 /* Provide a surface background utility */
 .surface {
-	background-color: var(--surface) !important;
+	background-color: var(--surface-1) !important;
 	color: var(--text) !important;
 }
 
 /* Ensure some semantic elements inherit text color */
 h1, h2, h3, h4, h5, h6, p, span, a, button, input, textarea, label, div {
 	color: inherit;
+}
+
+/* Semantic panel/card utilities */
+.panel {
+	background-color: var(--panel-01) !important;
+	color: var(--text) !important;
+	border-color: var(--muted-border) !important;
+}
+
+.card {
+	background-color: var(--panel-02) !important;
+	color: var(--text) !important;
 }
 
 /* Light-theme overrides for Tailwind arbitrary color classes used in the app.
@@ -62,15 +147,26 @@ html:not(.dark) .bg-\[\#0F0F13\] {
 
 /* Common panel/card dark hexes -> surface in light mode */
 html:not(.dark) .bg-\[\#141421\],
+html:not(.dark) .bg-\[\#141426\],
+html:not(.dark) .bg-\[\#14182A\] {
+	background-color: var(--surface-1) !important;
+	color: var(--text) !important;
+}
+
 html:not(.dark) .bg-\[\#1A1A2E\],
+html:not(.dark) .bg-\[\#1a1a35\],
 html:not(.dark) .bg-\[\#1E1E28\],
 html:not(.dark) .bg-\[\#121217\],
-html:not(.dark) .bg-\[\#0F0F14\],
-html:not(.dark) .bg-\[\#0F0F14\],
-html:not(.dark) .bg-\[\#1a1a35\],
-html:not(.dark) .bg-\[\#14182A\],
-html:not(.dark) .bg-\[\#0B0B13\] {
-	background-color: var(--surface) !important;
+html:not(.dark) .bg-\[\#0F0F14\] {
+	background-color: var(--surface-2) !important;
+	color: var(--text) !important;
+}
+
+/* map the darkest app background hex to page bg */
+html:not(.dark) .bg-\[\#0B0B13\],
+html:not(.dark) .bg-\[\#0F0F13\],
+html:not(.dark) .bg-\[\#0F0F1A\] {
+	background-color: var(--bg) !important;
 	color: var(--text) !important;
 }
 
@@ -100,6 +196,23 @@ html:not(.dark) .border-\[\#F3F3F3\] {
 		color: #000 !important;
 	}
 
+/* Ensure dark-mode uses the same tokens for mapped colors (so setting --success/--primary
+   from settings affects both light and dark buttons that used hard-coded tailwind hex classes) */
+html.dark .bg-blue-600,
+html.dark .bg-\[\#2563EB\],
+html.dark .hover\:bg-blue-500,
+html.dark .bg-\[\#1E40AF\] {
+    background-color: var(--primary) !important;
+    color: #fff !important;
+}
+
+html.dark .bg-green-500,
+html.dark .hover\:bg-green-400,
+html.dark .bg-\[\#16A34A\] {
+    background-color: var(--success) !important;
+    color: var(--btn-primary-foreground, #000) !important;
+}
+
 	html:not(.dark) .bg-red-600,
 	html:not(.dark) .bg-\[\#FF3B6E\],
 	html:not(.dark) .hover\:bg-red-500 {
@@ -123,6 +236,50 @@ html:not(.dark) .border-\[\#F3F3F3\] {
 		background-color: var(--surface) !important;
 		color: var(--text) !important;
 	}
+
+	/* Better differentiation in light mode: specific mappings for inputs, modals and cards */
+	html:not(.dark) .modal,
+	html:not(.dark) .card,
+	html:not(.dark) .panel {
+		background-color: var(--panel-01) !important;
+		color: var(--text) !important;
+		border-color: var(--muted-border) !important;
+	}
+
+	html:not(.dark) .panel-variant {
+		background-color: var(--panel-02) !important;
+	}
+
+/* Toggle switch component that follows theme variables */
+.toggle {
+	width: 48px;
+	height: 24px;
+	border-radius: 9999px;
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	padding: 2px;
+	transition: background-color .12s ease;
+	background: var(--panel-02);
+}
+.toggle .handle {
+	width: 20px;
+	height: 20px;
+	border-radius: 9999px;
+	background: var(--panel-01);
+	transition: transform .12s ease, background-color .12s ease;
+	transform: translateX(0);
+}
+.toggle.toggle-on {
+	background: var(--accent);
+}
+.toggle.toggle-on .handle {
+	transform: translateX(24px);
+	background: #000; /* contrast handle on accent */
+}
+.toggle.toggle-off {
+	background: var(--panel-02);
+}
 
 
 

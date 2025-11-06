@@ -99,26 +99,26 @@ export default function RegistroProfesor({ onAuthSuccess }) {
 
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#0D0D1A] px-4">
-      <div className="bg-[#12122B] p-6 sm:p-8 rounded-lg shadow-lg w-full max-w-md text-center fade-in">
-        <h2 className="text-white text-2xl font-bold">Registrarse</h2>
-        <p className="text-gray-400">Profesor</p>
+    <div className="flex items-center justify-center min-h-screen px-4">
+      <div className="card p-6 sm:p-8 rounded-lg shadow-lg w-full max-w-md text-center fade-in">
+        <h2 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>Registrarse</h2>
+        <p className="muted">Profesor</p>
 
         {awaitingConfirmation ? (
           <div className="mt-6">
-            <p className="text-sm text-gray-300 mb-2">Ingresa el código que recibiste por email</p>
+            <p className="text-sm muted mb-2">Ingresa el código que recibiste por email</p>
             <input
               type="text"
               name="confirmationCode"
               placeholder="Código de verificación"
               value={confirmationCode}
               onChange={(e) => setConfirmationCode(e.target.value)}
-              className="w-full p-3 rounded-lg bg-[#2A2A45] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
+              className="w-full p-3 rounded-lg surface placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200"
             />
             <div className="mt-4 flex gap-2">
               <button
                 onClick={handleConfirm}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-200"
+                className="flex-1 btn btn-primary"
               >
                 Confirmar código
               </button>
@@ -128,7 +128,7 @@ export default function RegistroProfesor({ onAuthSuccess }) {
                   setConfirmationToken(null);
                   setConfirmationCode("");
                 }}
-                className="px-4 py-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-white"
+                className="px-4 py-3 rounded-lg btn btn-secondary"
               >
                 Cancelar
               </button>
@@ -142,7 +142,7 @@ export default function RegistroProfesor({ onAuthSuccess }) {
             placeholder="Nombre"
             value={formData.nombre}
             onChange={handleChange}
-            className="w-full p-3 rounded-lg bg-[#2A2A45] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 fade-in"
+            className="w-full p-3 rounded-lg surface placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 fade-in"
           />
           <input
             type="email"
@@ -150,7 +150,7 @@ export default function RegistroProfesor({ onAuthSuccess }) {
             placeholder="Correo electrónico"
             value={formData.mail}
             onChange={handleChange}
-            className="w-full p-3 rounded-lg bg-[#2A2A45] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 fade-in"
+            className="w-full p-3 rounded-lg surface placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 fade-in"
           />
           <input
             type="password"
@@ -158,7 +158,7 @@ export default function RegistroProfesor({ onAuthSuccess }) {
             placeholder="Contraseña"
             value={formData.password}
             onChange={handleChange}
-            className="w-full p-3 rounded-lg bg-[#2A2A45] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 fade-in"
+            className="w-full p-3 rounded-lg surface placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 fade-in"
           />
           <input
             type="password"
@@ -166,27 +166,27 @@ export default function RegistroProfesor({ onAuthSuccess }) {
             placeholder="Confirmar contraseña"
             value={formData.confirmPassword}
             onChange={handleChange}
-            className="w-full p-3 rounded-lg bg-[#2A2A45] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 fade-in"
+            className="w-full p-3 rounded-lg surface placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 fade-in"
           />
 
           <button
             type="submit"
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] btn-animate"
+            className="w-full btn btn-primary"
           >
             CONFIRMAR
           </button>
   </form>
   )}
 
-  <div className="mt-6 flex flex-col sm:flex-row justify-between text-white text-sm font-medium gap-2 sm:gap-0">
+  <div className="mt-6 flex flex-col sm:flex-row justify-between muted text-sm font-medium gap-2 sm:gap-0">
           <span
-            className="cursor-pointer hover:text-gray-300"
+            className="cursor-pointer hover:opacity-90"
             onClick={() => navigate("/Registro-Alumno")}
           >
             ¿Eres un alumno?
           </span>
           <span
-            className="cursor-pointer hover:text-gray-300"
+            className="cursor-pointer hover:opacity-90"
             onClick={() => navigate("/Login")}
           >
             ¿Ya tienes cuenta?

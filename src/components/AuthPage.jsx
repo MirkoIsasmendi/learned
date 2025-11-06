@@ -27,7 +27,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0F0F1A]">
+    <div className="min-h-screen flex items-center justify-center surface">
       {renderForm()}
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RxFile } from "react-icons/rx";
 import { HiChevronLeft } from "react-icons/hi";
 
@@ -67,12 +67,13 @@ const DetalleTarea = ({ tarea, onClose }) => {
   };
 
   // Ejecutar listado al montar
-  useState(() => {
+  useEffect(() => {
     fetchArchivosRemotos();
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tarea && tarea.id]);
 
   return (
-    <div className="p-6 bg-[#1B1B2F] text-white min-h-screen fade-in">
+    <div className="p-6 panel min-h-screen fade-in">
       {/* Parte superior */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold fade-in">{tarea.titulo}</h1>
@@ -90,20 +91,20 @@ const DetalleTarea = ({ tarea, onClose }) => {
         <div className="flex gap-6 mt-6">
           {/* Caja descripción */}
           <textarea
-            className="flex-1 bg-[#1B1B2F] border border-gray-700 text-white p-4 rounded-lg resize-none outline-none fade-in"
+            className="flex-1 surface border border-gray-700 p-4 rounded-lg resize-none outline-none fade-in"
             value={tarea.descripcion || ""}
             placeholder="Descripcion..."
             readOnly
           />
 
           {/* Caja archivo (solo muestra archivo de ejemplo arriba) */}
-          <div className="w-[250px] bg-[#1B1B2F] border border-gray-700 rounded-lg p-4 flex flex-col justify-center max-h-64 overflow-y-auto fade-in">
-            <div className="w-full bg-[#2A2A40] rounded-lg px-4 py-3 flex flex-col gap-1">
+          <div className="w-[250px] surface border border-gray-700 rounded-lg p-4 flex flex-col justify-center max-h-64 overflow-y-auto fade-in">
+            <div className="w-full card rounded-lg px-4 py-3 flex flex-col gap-1">
               <div className="flex items-center gap-2">
-                <RxFile className="text-gray-300 text-xl" />
-                <strong className="text-gray-300 text-sm truncate">Nombre de archivo</strong>
+                <RxFile className="text-xl" />
+                <strong className="text-sm truncate" style={{ color: 'var(--text)' }}>Nombre de archivo</strong>
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-400">
+              <div className="flex items-center gap-2 text-xs muted">
                 <button className="hover:underline">Abrir archivo</button>
                 <span>•</span>
                 <button className="hover:underline">Guardar archivo</button>
@@ -123,7 +124,7 @@ const DetalleTarea = ({ tarea, onClose }) => {
         <div className="flex gap-6 flex-1">
           {/* Descripción editable */}
           <textarea
-            className="flex-1 bg-[#2A2A40] text-white p-3 rounded-lg resize-none outline-none fade-in"
+            className="flex-1 surface p-3 rounded-lg resize-none outline-none fade-in"
             placeholder="Agregar descripción..."
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
@@ -132,11 +133,11 @@ const DetalleTarea = ({ tarea, onClose }) => {
           {/* Caja archivos editable */}
           <div
             onPaste={handlePaste}
-            className="w-[250px] bg-[#1B1B2F] border border-gray-700 rounded-lg p-4 flex flex-col justify-start max-h-full overflow-y-auto fade-in"
+            className="w-[250px] surface border border-gray-700 rounded-lg p-4 flex flex-col justify-start max-h-full overflow-y-auto fade-in"
             tabIndex={0}
           >
             {archivos.length === 0 ? (
-              <div className="w-full bg-[#2A2A40] rounded-lg px-4 py-3 flex flex-col gap-1 h-full">
+                <div className="w-full card rounded-lg px-4 py-3 flex flex-col gap-1 h-full">
                 <div className="flex items-center gap-2">
                   <RxFile className="text-gray-300 text-xl" />
                   <span className="text-gray-300 text-sm">Pega aquí archivos (Ctrl+V)</span>
@@ -146,45 +147,45 @@ const DetalleTarea = ({ tarea, onClose }) => {
               archivos.map((file, index) => (
                 <div
                   key={index}
-                  className="w-full bg-[#2A2A40] rounded-lg px-4 py-3 flex flex-col gap-1 mb-2 fade-in"
+                  className="w-full card rounded-lg px-4 py-3 flex flex-col gap-1 mb-2 fade-in"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="flex items-center gap-2">
-                    <RxFile className="text-gray-300 text-xl" />
-                    <strong className="text-gray-300 text-sm truncate">{file.name}</strong>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <button className="hover:underline">Abrir archivo</button>
-                    <span>•</span>
-                    <button
-                      className="hover:underline"
-                      onClick={() =>
-                        setArchivos((prev) => prev.filter((_, i) => i !== index))
-                      }
-                    >
-                      Eliminar
-                    </button>
-                  </div>
+                      <div className="flex items-center gap-2">
+                        <RxFile className="text-xl" />
+                        <strong className="text-sm truncate" style={{ color: 'var(--text)' }}>{file.name}</strong>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs muted">
+                        <button className="hover:underline">Abrir archivo</button>
+                        <span>•</span>
+                        <button
+                          className="hover:underline"
+                          onClick={() =>
+                            setArchivos((prev) => prev.filter((_, i) => i !== index))
+                          }
+                        >
+                          Eliminar
+                        </button>
+                      </div>
                 </div>
               ))
             )}
-            <div className="mt-4">
-              <button
-                onClick={uploadFiles}
-                className="w-full px-3 py-2 bg-green-500 rounded text-white hover:bg-green-600 transition"
-              >
-                Subir archivos
-              </button>
-            </div>
+              <div className="mt-4">
+                <button
+                  onClick={uploadFiles}
+                  className="w-full btn btn-primary"
+                >
+                  Subir archivos
+                </button>
+              </div>
           </div>
         </div>
 
         {/* Botones alineados abajo a la derecha */}
         <div className="flex justify-end gap-4 mt-4">
-          <button className="px-4 py-2 bg-gray-700 rounded-lg btn-animate transform hover:scale-105 transition-all duration-200">
+          <button className="btn btn-secondary">
             Guardar Borrador
           </button>
-          <button className="px-4 py-2 bg-green-500 rounded-lg btn-animate transform hover:scale-105 transition-all duration-200">
+          <button className="btn btn-primary">
             Guardar y subir
           </button>
         </div>
@@ -194,11 +195,11 @@ const DetalleTarea = ({ tarea, onClose }) => {
       <div className="mt-8">
         <h3 className="text-lg font-semibold mb-2">Archivos subidos</h3>
         {archivosRemotos.length === 0 ? (
-          <p className="text-gray-400">No hay archivos subidos</p>
+          <p className="muted">No hay archivos subidos</p>
         ) : (
           archivosRemotos.map((f, i) => (
-            <div key={i} className="flex items-center justify-between bg-[#141426] p-2 rounded mb-2">
-              <span className="text-sm truncate">{f.filename}</span>
+            <div key={i} className="flex items-center justify-between card p-2 rounded mb-2">
+              <span className="text-sm truncate" style={{ color: 'var(--text)' }}>{f.filename}</span>
               <a href={f.url} className="text-green-400 hover:underline" target="_blank" rel="noreferrer">Descargar</a>
             </div>
           ))

@@ -73,7 +73,7 @@ export default function ClasePage() {
 
   if (!usuario) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#0B0B13] text-white">
+      <div className="flex items-center justify-center h-screen">
         <p>Cargando usuario...</p>
       </div>
     );
@@ -262,7 +262,7 @@ export default function ClasePage() {
 
       <aside
         className={`absolute left-[21vw] top-[60px] bottom-0 w-80 
-        bg-[#14182A] text-white shadow-2xl
+        panel shadow-2xl
         transform transition-transform duration-300 ease-out
         ${menuAbierto ? "translate-x-0 slide-in-left" : menu ? "slide-out-left" : "-translate-x-full"}
         z-10 overflow-y-auto`}
@@ -319,14 +319,14 @@ export default function ClasePage() {
 
         {/* Panel de invitación (simple) */}
         {mostrarInvitacion && (
-          <div className="p-4 border-t border-white/10">
+          <div className="p-4 border-t panel">
             <label className="block text-xs text-gray-300 mb-2">Correo del usuario a invitar</label>
             <input
               type="email"
               placeholder="correo@ejemplo.com"
               value={emailInvitacion}
               onChange={(e) => setEmailInvitacion(e.target.value)}
-              className="w-full p-2 rounded bg-[#1a1a35] border border-gray-700 mb-3 text-white"
+              className="w-full p-2 rounded surface border border-gray-700 mb-3"
             />
             <div className="flex gap-2">
               <button

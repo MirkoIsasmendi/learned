@@ -44,8 +44,8 @@ export default function Nav() {
   };
 
   return (
-    <nav className="bg-gradient-to-r from-[#0F0F13] to-[#1A1A2E] h-[60px] px-6 flex items-center justify-between border-b border-[#F3F3F3] fade-in">
-      <h1 className="text-xl text-white">{nombreClase}</h1>
+    <nav className="panel h-[60px] px-6 flex items-center justify-between border-b fade-in">
+      <h1 className="text-xl">{nombreClase}</h1>
 
       <div className="flex items-center gap-4">
         {usuario.rol === "profesor" && (
@@ -62,7 +62,7 @@ export default function Nav() {
           aria-label="Cerrar y volver al home"
           className="btn-animate transform hover:scale-110 transition-all duration-200"
         >
-          <CgClose className="text-2xl text-white hover:text-gray-400 cursor-pointer" />
+          <CgClose className="text-2xl hover:text-gray-400 cursor-pointer" />
         </button>
       </div>
     </nav>

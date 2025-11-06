@@ -55,8 +55,8 @@ const API_URL = import.meta.env.VITE_API_URL;
   };
 
   return (
-    <div className="min-h-screen bg-[#0f0f25] text-white flex">
-      <div className="flex-1 p-8 relative bg-[#0f0f25]">
+    <div className="min-h-screen panel flex">
+      <div className="flex-1 p-8 relative surface">
         <button
           className="absolute text-gray-500 top-4 right-4 p-2 cursor-pointer hover:text-white btn-animate transform hover:scale-110 transition-all duration-200"
           onClick={() => window.history.back()}
@@ -71,17 +71,17 @@ const API_URL = import.meta.env.VITE_API_URL;
           placeholder="Nombre de la clase"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
-          className="w-full p-2 rounded bg-[#1a1a35] border border-gray-700 mb-6 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 fade-in"
+          className="w-full p-2 rounded surface border mb-6 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 fade-in"
         />
 
         <textarea
           placeholder="Agregar descripción (mín. 5 palabras)"
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
-          className="w-full p-2 h-28 rounded bg-[#1a1a35] border border-gray-700 mb-6 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 fade-in"
+          className="w-full p-2 h-28 rounded surface border mb-6 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 fade-in"
         />
 
-        <div className="w-auto h-auto p-2 rounded-2xl bg-[#1a1a35] border border-gray-700 mb-6 grid grid-cols-5 auto-rows-[150px] justify-items-center focus:outline-none fade-in">
+        <div className="w-auto h-auto p-2 rounded-2xl surface border mb-6 grid grid-cols-5 auto-rows-[150px] justify-items-center focus:outline-none fade-in">
           {colores.map((color, index) => (
             <div
               key={index}
@@ -92,11 +92,11 @@ const API_URL = import.meta.env.VITE_API_URL;
         </div>
 
         <div className="flex space-x-4">
-          <button className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 btn-animate transform hover:scale-105 transition-all duration-200">
+          <button className="btn btn-secondary">
             Cancelar
           </button>
           <button
-            className="px-4 py-2 rounded bg-green-500 hover:bg-green-600 btn-animate transform hover:scale-105 transition-all duration-200"
+            className="btn btn-primary"
             onClick={handleSubmit}
           >
             Guardar y subir
@@ -104,15 +104,15 @@ const API_URL = import.meta.env.VITE_API_URL;
         </div>
       </div>
 
-      <div className="w-1/3 bg-black p-6">
-        <h2 className="text-sm text-gray-400 mb-4 fade-in">Vista previa</h2>
-        <div className="w-[240px] h-[200px] rounded-lg overflow-hidden shadow-md flex flex-col border border-gray-700 cursor-pointer tarea-card">
-          <div className="flex-1 flex flex-col justify-end bg-[#1B1B2F]">
-            <div className="bg-[#BFBFC4] p-3">
-              <p className="text-sm font-bold text-black">
+      <div className="w-1/3 panel p-6">
+        <h2 className="text-sm muted mb-4 fade-in">Vista previa</h2>
+        <div className="w-[240px] h-[200px] rounded-lg overflow-hidden shadow-md flex flex-col card cursor-pointer tarea-card">
+          <div className="flex-1 flex flex-col justify-end card surface-2">
+            <div className="p-3">
+              <p className="text-sm font-bold" style={{ color: 'var(--text)' }}>
                 {nombre || "Nombre de la clase"}
               </p>
-              <p className="text-xs text-gray-800">
+              <p className="text-xs muted">
                 {descripcion || "Descripción de la clase"}
               </p>
             </div>

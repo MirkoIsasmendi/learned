@@ -55,10 +55,13 @@ function SortableItem({ item, onClick, activeId }) {
   const composedListeners = {
     ...listeners,
     onPointerDown: (e) => {
+      // only handle primary (left) button to avoid right-click/contextmenu starting a drag
+      if (e && typeof e.button !== 'undefined' && e.button !== 0) return;
       if (listeners && typeof listeners.onPointerDown === 'function') listeners.onPointerDown(e);
       handlePointerDown(e);
     },
     onPointerUp: (e) => {
+      if (e && typeof e.button !== 'undefined' && e.button !== 0) return;
       if (listeners && typeof listeners.onPointerUp === 'function') listeners.onPointerUp(e);
       handlePointerUp(e);
     }
@@ -74,10 +77,10 @@ function SortableItem({ item, onClick, activeId }) {
         isDragging ? 'scale-105 bg-opacity-90' : 'hover:scale-105'
       }`}
     >
-      <div className="flex-1 bg-[#1B1B2F]"></div>
-      <div className="bg-[#BFBFC4] p-3">
-        <h3 className="text-sm font-bold text-black">{item.titulo}</h3>
-        <p className="text-xs text-gray-800">{item.descripcion}</p>
+      <div className="flex-1 panel" />
+      <div className="card p-3">
+        <h3 className="text-sm font-bold">{item.titulo}</h3>
+        <p className="text-xs text-gray-500">{item.descripcion}</p>
       </div>
     </div>
   );
@@ -96,12 +99,12 @@ const SeccionCarrusel = ({ titulo, tarjetas, onTarjetaClick, containerId, active
   };
 
   return (
-    <div className="bg-[#1E1E2E] p-6 h-[300px] rounded-lg shadow-md relative fade-in">
-      <h2 className="text-lg text-white font-semibold mb-4">{titulo}</h2>
+    <div className="panel p-6 h-[300px] rounded-lg shadow-md relative fade-in">
+      <h2 className="text-lg font-semibold mb-4">{titulo}</h2>
 
       <button
         onClick={desplazarIzquierda}
-        className="absolute left-[-10px] top-[50%] transform -translate-y-1/2 bg-transparent p-2 rounded-full z-10 text-white cursor-pointer hover:text-gray-400 btn-animate transform hover:scale-110 transition-all duration-200"
+        className="absolute left-[-10px] top-[50%] transform -translate-y-1/2 bg-transparent p-2 rounded-full z-10 cursor-pointer hover:text-gray-400 btn-animate transform hover:scale-110 transition-all duration-200"
         type="button"
       >
         <GrFormPrevious size={24} />
@@ -126,7 +129,7 @@ const SeccionCarrusel = ({ titulo, tarjetas, onTarjetaClick, containerId, active
 
       <button
         onClick={desplazarDerecha}
-        className="absolute right-[-10px] top-[50%] transform -translate-y-1/2 bg-transparent p-2 rounded-full z-10 text-white cursor-pointer hover:text-gray-400 btn-animate transform hover:scale-110 transition-all duration-200"
+        className="absolute right-[-10px] top-[50%] transform -translate-y-1/2 bg-transparent p-2 rounded-full z-10 cursor-pointer hover:text-gray-400 btn-animate transform hover:scale-110 transition-all duration-200"
         type="button"
       >
         <GrFormNext size={24} />
@@ -172,7 +175,11 @@ const Contenedor = () => {
     return null;
   };
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  // Use a PointerSensor with an activation delay so quick clicks don't start a drag
+  // and require only the primary (left) mouse button to initiate dragging.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { delay: 100, tolerance: 5 } })
+  );
   const handleDragStart = (event) => {
     setActiveId(String(event.active.id));
   };
@@ -305,13 +312,13 @@ const Contenedor = () => {
             if (!item) return null;
             // lightweight preview without hooks
             return (
-              <div className={`w-[240px] h-[200px] flex-none rounded-lg overflow-hidden shadow-md flex flex-col border border-gray-700 bg-white`}>
-                <div className="flex-1 bg-[#1B1B2F]"></div>
-                <div className="bg-[#BFBFC4] p-3">
-                  <h3 className="text-sm font-bold text-black">{item.titulo}</h3>
-                  <p className="text-xs text-gray-800">{item.descripcion}</p>
+              <div className={`w-[240px] h-[200px] flex-none rounded-lg overflow-hidden shadow-md flex flex-col border border-gray-700`}>
+                  <div className="flex-1 panel" />
+                  <div className="card p-3">
+                    <h3 className="text-sm font-bold">{item.titulo}</h3>
+                    <p className="text-xs text-gray-500">{item.descripcion}</p>
+                  </div>
                 </div>
-              </div>
             );
           })()
         ) : null}

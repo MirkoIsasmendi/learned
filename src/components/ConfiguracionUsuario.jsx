@@ -79,8 +79,12 @@ export default function ConfiguracionUsuario() {
   const aparienciaDefault = {
     modoPreview: "oscuro",
     densidad: "predeterminado",
-    acento: "#00FFA0",
     escalaFuente: 1,
+    // chat specific colors (incoming/outgoing) and display toggles
+    chatIncoming: "#121217",
+    chatOutgoing: "#00FFA0",
+    mostrarAvatares: true,
+    mostrarTimestamps: true,
   };
   const [apariencia, setApariencia] = useState(aparienciaDefault);
 
@@ -193,6 +197,37 @@ export default function ConfiguracionUsuario() {
     }
   }, [apariencia]);
 
+  // Apply apariencia colors to global CSS vars so changes affect the whole app immediately
+  useEffect(() => {
+    try {
+      const root = document.documentElement;
+      const chatOutgoing = apariencia.chatOutgoing || '#00FFA0';
+      const chatIncoming = apariencia.chatIncoming || '#121217';
+
+      root.style.setProperty('--accent', chatOutgoing);
+      root.style.setProperty('--success', chatOutgoing);
+      root.style.setProperty('--primary', chatIncoming);
+      root.style.setProperty('--accent-incoming', chatIncoming);
+
+      // compute readable foreground for primary-like buttons
+      const text = (() => {
+        try {
+          const h = (chatOutgoing || '#000').replace('#', '');
+          const r = parseInt(h.substring(0, 2), 16);
+          const g = parseInt(h.substring(2, 4), 16);
+          const b = parseInt(h.substring(4, 6), 16);
+          const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+          return luminance > 0.6 ? '#000' : '#fff';
+        } catch (e) {
+          return '#000';
+        }
+      })();
+      root.style.setProperty('--btn-primary-foreground', text);
+    } catch (e) {
+      // ignore
+    }
+  }, [apariencia.chatIncoming, apariencia.chatOutgoing]);
+
   useEffect(() => {
     try {
       localStorage.setItem(LS_KEYS.ATAJOS, JSON.stringify(atajos));
@@ -253,6 +288,11 @@ export default function ConfiguracionUsuario() {
     setCapturedCombo("");
   };
 
+  const handleCerrarSesion = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
   // Capturar combinaciones mientras el modal está abierto
   useEffect(() => {
     if (!modalOpen) return;
@@ -311,23 +351,49 @@ export default function ConfiguracionUsuario() {
   const setModoPreview = (modo) =>
     setApariencia((prev) => ({ ...prev, modoPreview: modo }));
 
+  // Ref to mark when a change was initiated by the user (to avoid automatic two-way sync loops)
+  const userInitiatedModeChangeRef = useRef(false);
+
   // integrate with global theme provider if available
+  // Only call setMode when the requested mode differs from current theme.mode
+  // to avoid a two-way update loop that causes visual flicker.
+  // Only call setMode when the requested mode differs from current theme.mode
+  // AND the change was initiated by the user (prevents flicker on mount/auto-sync)
   useEffect(() => {
-    if (theme && typeof theme.setMode === 'function') {
-      theme.setMode(apariencia.modoPreview || 'oscuro');
+    try {
+      if (!theme || typeof theme.setMode !== 'function') return;
+      const desired = apariencia.modoPreview || 'oscuro';
+      // if theme exposes current mode, avoid calling setMode when equal
+      if (typeof theme.mode === 'string' && theme.mode === desired) {
+        // reset the user-initiated flag if already in desired state
+        userInitiatedModeChangeRef.current = false;
+        return;
+      }
+      if (!userInitiatedModeChangeRef.current) return;
+      theme.setMode(desired);
+      userInitiatedModeChangeRef.current = false;
+    } catch (e) {
+      // ignore any errors to avoid breaking the settings UI
     }
   }, [apariencia.modoPreview, theme]);
 
   const setDensidad = (d) => setApariencia((prev) => ({ ...prev, densidad: d }));
 
-  const setAcento = (hex) => setApariencia((prev) => ({ ...prev, acento: hex }));
+  // removed global 'acento' — chat colors are handled separately
 
   const setEscalaFuente = (valor) =>
     setApariencia((prev) => ({ ...prev, escalaFuente: Number(valor) }));
 
+  // Chat bubble color handlers and toggles
+  const setChatIncoming = (hex) => setApariencia((prev) => ({ ...prev, chatIncoming: hex }));
+  const setChatOutgoing = (hex) => setApariencia((prev) => ({ ...prev, chatOutgoing: hex }));
+  const toggleMostrarAvatares = () => setApariencia((prev) => ({ ...prev, mostrarAvatares: !prev.mostrarAvatares }));
+  const toggleMostrarTimestamps = () => setApariencia((prev) => ({ ...prev, mostrarTimestamps: !prev.mostrarTimestamps }));
+
   const previewStyle = {
     fontSize: `${apariencia.escalaFuente}rem`,
-    ["--acento"]: apariencia.acento,
+    ["--acento"]: apariencia.chatOutgoing,
+    ["--accent"]: apariencia.chatOutgoing,
   };
 
   const densidadMap = {
@@ -338,29 +404,36 @@ export default function ConfiguracionUsuario() {
 
   // ---------- Render ----------
   return (
-    <div className="flex h-screen bg-[#0B0B13] text-white relative">
+    <div className="flex h-screen relative">
       {/* Flecha para volver */}
       <button
-        className="absolute top-4 right-4 text-gray-400 hover:text-white transition-all duration-200"
+        className="absolute top-4 right-4 muted hover:opacity-90 transition-all duration-200"
         onClick={() => navigate("/")}
       >
         <HiChevronLeft className="text-2xl" />
       </button>
 
       {/* Menú lateral */}
-      <div className="w-64 bg-[#141421] p-6">
+      <div className="w-64 panel p-6">
         <h2 className="text-xl font-bold mb-6">Configuración</h2>
         <ul className="space-y-3">
           {secciones.map((item) => (
             <li
               key={item}
-              className={`cursor-pointer ${seccion === item ? "text-white font-semibold" : "text-gray-400"
-                }`}
+              className={`cursor-pointer ${seccion === item ? "font-semibold accent" : "muted"}`}
               onClick={() => setSeccion(item)}
             >
               {item}
             </li>
           ))}
+          {/* Acción de Cerrar sesión dentro del menú */}
+          <li
+            onClick={handleCerrarSesion}
+            className="cursor-pointer text-red-400 hover:text-red-300 mt-4"
+            title="Cerrar sesión"
+          >
+            Cerrar sesión
+          </li>
         </ul>
       </div>
 
@@ -376,7 +449,7 @@ export default function ConfiguracionUsuario() {
                   "https://via.placeholder.com/150?text=Foto"
                 }
                 alt="Perfil"
-                className="w-48 h-48 rounded-full object-cover border-4 border-[#1A1A2E]"
+                className="w-48 h-48 rounded-full object-cover border-4 border-white/10"
               />
               <label className="mt-3 text-blue-400 cursor-pointer">
                 Cambiar foto
@@ -405,7 +478,7 @@ export default function ConfiguracionUsuario() {
                   name="nombre"
                   value={usuario.nombre}
                   onChange={handleChange}
-                  className="w-full bg-[#1A1A2E] p-2 rounded text-white"
+                  className="w-full surface p-2 rounded"
                   placeholder="Nombre"
                 />
               </div>
@@ -416,7 +489,7 @@ export default function ConfiguracionUsuario() {
                   name="descripcion"
                   value={usuario.descripcion}
                   onChange={handleChange}
-                  className="w-full bg-[#1A1A2E] p-2 rounded text-white h-28"
+                  className="w-full surface p-2 rounded h-28"
                 />
               </div>
 
@@ -427,17 +500,18 @@ export default function ConfiguracionUsuario() {
                   name="ubicacion"
                   value={usuario.ubicacion}
                   onChange={handleChange}
-                  className="w-full bg-[#1A1A2E] p-2 rounded text-white"
+                  className="w-full surface p-2 rounded"
                   placeholder="Ubicación"
                 />
               </div>
 
               <button
                 onClick={handleGuardar}
-                className="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded"
+                className="btn btn-primary"
               >
                 Guardar cambios
               </button>
+              
             </div>
           </div>
         )}
@@ -446,7 +520,7 @@ export default function ConfiguracionUsuario() {
         {seccion === "Privacidad y seguridad" && (
           <div className="max-w-xl">
             <h2 className="text-lg font-semibold mb-6">Seguridad</h2>
-            <div className="bg-[#141421] p-6 rounded-lg space-y-6">
+            <div className="panel p-6 rounded-lg space-y-6">
               <div>
                 <label className="block text-sm text-gray-400 mb-2">
                   Modificar correo
@@ -456,7 +530,7 @@ export default function ConfiguracionUsuario() {
                   name="correo"
                   value={usuario.correo}
                   onChange={handleChange}
-                  className="w-full bg-[#1A1A2E] p-2 rounded text-white"
+                  className="w-full surface p-2 rounded"
                 />
               </div>
 
@@ -469,7 +543,7 @@ export default function ConfiguracionUsuario() {
                   name="telefono"
                   value={usuario.telefono}
                   onChange={handleChange}
-                  className="w-full bg-[#1A1A2E] p-2 rounded text-white"
+                  className="w-full surface p-2 rounded"
                 />
               </div>
 
@@ -482,15 +556,15 @@ export default function ConfiguracionUsuario() {
                   name="contrasena"
                   value={usuario.contrasena}
                   onChange={handleChange}
-                  className="w-full bg-[#1A1A2E] p-2 rounded text-white"
+                  className="w-full surface p-2 rounded"
                 />
               </div>
 
               <div className="flex justify-between mt-6">
-                <button className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded">
+                <button className="btn btn-secondary">
                   Desactivar cuenta
                 </button>
-                <button className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded">
+                <button className="btn btn-danger">
                   Eliminar cuenta
                 </button>
               </div>
@@ -502,7 +576,7 @@ export default function ConfiguracionUsuario() {
         {seccion === "Voz y video" && (
           <div className="grid grid-cols-2 gap-6 max-w-5xl">
             {/* Voz y Audio */}
-            <div className="bg-[#141421] p-6 rounded-lg">
+            <div className="panel p-6 rounded-lg">
               <h2 className="text-lg font-semibold mb-4">Voz y Audio</h2>
 
               <div className="space-y-4">
@@ -514,7 +588,7 @@ export default function ConfiguracionUsuario() {
                     name="modoEntrada"
                     value={voz.modoEntrada}
                     onChange={handleVozChange}
-                    className="w-full bg-[#1A1A2E] p-2 rounded text-white"
+                    className="w-full surface p-2 rounded"
                   >
                     <option>Actividad de voz</option>
                     <option>Pulsar para hablar</option>
@@ -554,7 +628,7 @@ export default function ConfiguracionUsuario() {
             </div>
 
             {/* Video */}
-            <div className="bg-[#141421] p-6 rounded-lg">
+            <div className="panel p-6 rounded-lg">
               <h2 className="text-lg font-semibold mb-4">Video</h2>
 
               <div className="space-y-4">
@@ -566,7 +640,7 @@ export default function ConfiguracionUsuario() {
                     name="camara"
                     value={voz.camara}
                     onChange={handleVozChange}
-                    className="w-full bg-[#1A1A2E] p-2 rounded text-white"
+                    className="w-full surface p-2 rounded"
                   >
                     <option>Cámara 1</option>
                     <option>Cámara 2</option>
@@ -577,8 +651,8 @@ export default function ConfiguracionUsuario() {
                   <label className="block text-sm text-gray-400 mb-2">
                     Muestra de video
                   </label>
-                  <div className="bg-[#1A1A2E] h-40 flex items-center justify-center rounded">
-                    <button className="bg-green-500 hover:bg-green-400 px-4 py-2 rounded text-black font-semibold">
+                  <div className="surface h-40 flex items-center justify-center rounded">
+                    <button className="btn btn-primary">
                       Video de prueba
                     </button>
                   </div>
@@ -590,7 +664,7 @@ export default function ConfiguracionUsuario() {
 
         {/* --- NOTIFICACIONES --- */}
         {seccion === "Notificaciones" && (
-          <div className="bg-[#141421] p-6 rounded-lg max-w-3xl">
+          <div className="panel p-6 rounded-lg max-w-3xl">
             <h2 className="text-2xl font-semibold mb-6">Notificaciones</h2>
 
             {/* Notificaciones integradas */}
@@ -599,20 +673,17 @@ export default function ConfiguracionUsuario() {
                 Notificaciones integradas
               </h3>
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-white">
+                <span className="font-semibold">
                   Recibir notificaciones dentro de la aplicación
                 </span>
                 <button
                   onClick={() =>
                     handleNotifChange("internas", !notificaciones.internas)
                   }
-                  className={`relative w-12 h-6 flex items-center rounded-full transition-colors duration-300 ${notificaciones.internas ? "bg-green-500" : "bg-gray-700"
-                    }`}
+                  className={`toggle ${notificaciones.internas ? "toggle-on" : "toggle-off"}`}
+                  aria-pressed={notificaciones.internas}
                 >
-                  <span
-                    className={`absolute bg-white w-5 h-5 rounded-full transform transition-transform duration-300 ${notificaciones.internas ? "translate-x-6" : "translate-x-1"
-                      }`}
-                  ></span>
+                  <span className="handle" />
                 </button>
               </div>
             </div>
@@ -623,20 +694,17 @@ export default function ConfiguracionUsuario() {
                 Notificaciones del sistema
               </h3>
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-white">
+                <span className="font-semibold">
                   Recibir notificaciones externas de la aplicación
                 </span>
                 <button
                   onClick={() =>
                     handleNotifChange("externas", !notificaciones.externas)
                   }
-                  className={`relative w-12 h-6 flex items-center rounded-full transition-colors duration-300 ${notificaciones.externas ? "bg-green-500" : "bg-gray-700"
-                    }`}
+                  className={`toggle ${notificaciones.externas ? "toggle-on" : "toggle-off"}`}
+                  aria-pressed={notificaciones.externas}
                 >
-                  <span
-                    className={`absolute bg-white w-5 h-5 rounded-full transform transition-transform duration-300 ${notificaciones.externas ? "translate-x-6" : "translate-x-1"
-                      }`}
-                  ></span>
+                  <span className="handle" />
                 </button>
               </div>
 
@@ -649,7 +717,7 @@ export default function ConfiguracionUsuario() {
                   onChange={(e) =>
                     handleNotifChange("tiempoInactividad", e.target.value)
                   }
-                  className="w-full bg-[#1A1A2E] p-2 rounded text-white"
+                  className="w-full surface p-2 rounded"
                 >
                   <option>5 minutos</option>
                   <option>10 minutos</option>
@@ -690,7 +758,7 @@ export default function ConfiguracionUsuario() {
 
         {/* --- TEXTO E IMAGEN --- */}
         {seccion === "Texto e imagen" && (
-          <div className="bg-[#141421] p-6 rounded-lg max-w-3xl">
+          <div className="panel p-6 rounded-lg max-w-3xl">
             <h2 className="text-2xl font-semibold mb-6">Chat</h2>
 
             {/* Mostrar imágenes, videos y GIFs */}
@@ -708,17 +776,10 @@ export default function ConfiguracionUsuario() {
                     !notificaciones.mostrarMultimedia
                   )
                 }
-                className={`relative w-12 h-6 flex items-center rounded-full transition-colors duration-300 ${notificaciones.mostrarMultimedia
-                    ? "bg-green-500"
-                    : "bg-gray-700"
-                  }`}
+                className={`toggle ${notificaciones.mostrarMultimedia ? "toggle-on" : "toggle-off"}`}
+                aria-pressed={notificaciones.mostrarMultimedia}
               >
-                <span
-                  className={`absolute bg-white w-5 h-5 rounded-full transform transition-transform duration-300 ${notificaciones.mostrarMultimedia
-                      ? "translate-x-6"
-                      : "translate-x-1"
-                    }`}
-                ></span>
+                <span className="handle" />
               </button>
             </div>
 
@@ -739,17 +800,10 @@ export default function ConfiguracionUsuario() {
                     !notificaciones.limitarImagenes
                   )
                 }
-                className={`relative w-12 h-6 flex items-center rounded-full transition-colors duration-300 ${notificaciones.limitarImagenes
-                    ? "bg-green-500"
-                    : "bg-gray-700"
-                  }`}
+                className={`toggle ${notificaciones.limitarImagenes ? "toggle-on" : "toggle-off"}`}
+                aria-pressed={notificaciones.limitarImagenes}
               >
-                <span
-                  className={`absolute bg-white w-5 h-5 rounded-full transform transition-transform duration-300 ${notificaciones.limitarImagenes
-                      ? "translate-x-6"
-                      : "translate-x-1"
-                    }`}
-                ></span>
+                <span className="handle" />
               </button>
             </div>
 
@@ -774,17 +828,9 @@ export default function ConfiguracionUsuario() {
                     !notificaciones.convertirEmojis
                   )
                 }
-                className={`relative w-12 h-6 flex items-center rounded-full transition-colors duration-300 ${notificaciones.convertirEmojis
-                    ? "bg-green-500"
-                    : "bg-gray-700"
-                  }`}
+                className={`toggle ${notificaciones.convertirEmojis ? "toggle-on" : "toggle-off"}`}
               >
-                <span
-                  className={`absolute bg-white w-5 h-5 rounded-full transform transition-transform duration-300 ${notificaciones.convertirEmojis
-                      ? "translate-x-6"
-                      : "translate-x-1"
-                    }`}
-                ></span>
+                <span className="handle" />
               </button>
             </div>
 
@@ -800,17 +846,10 @@ export default function ConfiguracionUsuario() {
                     !notificaciones.mostrarReacciones
                   )
                 }
-                className={`relative w-12 h-6 flex items-center rounded-full transition-colors duration-300 ${notificaciones.mostrarReacciones
-                    ? "bg-green-500"
-                    : "bg-gray-700"
-                  }`}
+                className={`toggle ${notificaciones.mostrarReacciones ? "toggle-on" : "toggle-off"}`}
+                aria-pressed={notificaciones.mostrarReacciones}
               >
-                <span
-                  className={`absolute bg-white w-5 h-5 rounded-full transform transition-transform duration-300 ${notificaciones.mostrarReacciones
-                      ? "translate-x-6"
-                      : "translate-x-1"
-                    }`}
-                ></span>
+                <span className="handle" />
               </button>
             </div>
           </div>
@@ -820,7 +859,7 @@ export default function ConfiguracionUsuario() {
         {seccion === "Apariencia" && (
           <div className="max-w-4xl space-y-6">
             <h2 className="text-2xl font-semibold mb-2">Apariencia</h2>
-            <div className="bg-[#141421] p-6 rounded-lg grid grid-cols-2 gap-6">
+            <div className="panel p-6 rounded-lg grid grid-cols-2 gap-6">
               {/* Controles izquierdo */}
               <div className="space-y-6">
                 {/* Modo preview (solo preview) */}
@@ -830,20 +869,20 @@ export default function ConfiguracionUsuario() {
                   </label>
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => setModoPreview("oscuro")}
-                      className={`px-3 py-1 rounded ${apariencia.modoPreview === "oscuro"
-                          ? "bg-white text-black font-semibold"
-                          : "bg-gray-800 text-gray-300"
-                        }`}
+                      onClick={() => {
+                        userInitiatedModeChangeRef.current = true;
+                        setModoPreview("oscuro");
+                      }}
+                      className={`px-3 py-1 rounded text-sm ${apariencia.modoPreview === "oscuro" ? "btn btn-primary font-semibold" : "btn btn-secondary"}`}
                     >
                       Oscuro
                     </button>
                     <button
-                      onClick={() => setModoPreview("claro")}
-                      className={`px-3 py-1 rounded ${apariencia.modoPreview === "claro"
-                          ? "bg-white text-black font-semibold"
-                          : "bg-gray-800 text-gray-300"
-                        }`}
+                      onClick={() => {
+                        userInitiatedModeChangeRef.current = true;
+                        setModoPreview("claro");
+                      }}
+                      className={`px-3 py-1 rounded text-sm ${apariencia.modoPreview === "claro" ? "btn btn-primary font-semibold" : "btn btn-secondary"}`}
                     >
                       Claro
                     </button>
@@ -878,36 +917,7 @@ export default function ConfiguracionUsuario() {
                   </div>
                 </div>
 
-                {/* Paleta de acentos */}
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">
-                    Color de acento
-                  </label>
-                  <div className="flex flex-wrap gap-3">
-                    {[
-                      "#00FFA0",
-                      "#00C2FF",
-                      "#FF7A7A",
-                      "#FFD166",
-                      "#C084FC",
-                      "#FF8FB1",
-                      "#6EE7B7",
-                      "#9CA3AF",
-                    ].map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => setAcento(color)}
-                        title={color}
-                        className="w-8 h-8 rounded-full border-2"
-                        style={{
-                          background: color,
-                          borderColor:
-                            apariencia.acento === color ? "#ffffff" : "transparent",
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
+                {/* removed global accent palette — use incoming/outgoing colors instead */}
 
                 {/* Escala de la fuente */}
                 <div>
@@ -929,6 +939,53 @@ export default function ConfiguracionUsuario() {
                     </div>
                   </div>
                 </div>
+
+                {/* Presets de fuente y colores del chat */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Tamaño rápido</label>
+                  <div className="flex items-center gap-2 mb-3">
+                    <button onClick={() => setEscalaFuente(0.9)} className={`btn ${apariencia.escalaFuente===0.9? 'btn-primary':'btn-secondary'}`}>Pequeña</button>
+                    <button onClick={() => setEscalaFuente(1)} className={`btn ${apariencia.escalaFuente===1? 'btn-primary':'btn-secondary'}`}>Media</button>
+                    <button onClick={() => setEscalaFuente(1.15)} className={`btn ${apariencia.escalaFuente===1.15? 'btn-primary':'btn-secondary'}`}>Grande</button>
+                  </div>
+
+                  <label className="block text-sm text-gray-400 mb-2">Colores del chat</label>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="text-sm muted">Entrante</div>
+                    {["#0F1724","#121217","#F3F4F6","#E6EEF8","#FDE68A"].map((c)=> (
+                      <button key={c} title={c} onClick={()=> setChatIncoming(c)} className="w-7 h-7 rounded-full border" style={{background:c, borderColor: apariencia.chatIncoming===c? '#fff':'transparent'}} />
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="text-sm muted">Saliente</div>
+                    {["#00FFA0", "#00C2FF", "#FF7A7A", "#FFD166", "#C084FC"].map((c) => (
+                      <button key={c} title={c} onClick={() => setChatOutgoing(c)} className="w-7 h-7 rounded-full border" style={{ background: c, borderColor: apariencia.chatOutgoing === c ? '#000' : 'transparent' }} />
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="text-sm muted">Color personalizado</div>
+                    <input type="color" value={apariencia.chatIncoming} onChange={(e) => setChatIncoming(e.target.value)} title="Color entrante" className="w-10 h-8 p-0 border rounded" />
+                    <input type="color" value={apariencia.chatOutgoing} onChange={(e) => setChatOutgoing(e.target.value)} title="Color saliente" className="w-10 h-8 p-0 border rounded" />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold">Mostrar avatares</p>
+                      <p className="text-xs muted">Activa o desactiva los avatares en la vista previa</p>
+                    </div>
+                    <button onClick={toggleMostrarAvatares} className={`toggle ${apariencia.mostrarAvatares? 'toggle-on':'toggle-off'}`} aria-pressed={apariencia.mostrarAvatares}><span className="handle"/></button>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-3">
+                    <div>
+                      <p className="text-sm font-semibold">Mostrar timestamps</p>
+                      <p className="text-xs muted">Muestra / oculta marcas de tiempo en mensajes</p>
+                    </div>
+                    <button onClick={toggleMostrarTimestamps} className={`toggle ${apariencia.mostrarTimestamps? 'toggle-on':'toggle-off'}`} aria-pressed={apariencia.mostrarTimestamps}><span className="handle"/></button>
+                  </div>
+                </div>
               </div>
 
               {/* Preview derecho */}
@@ -937,7 +994,7 @@ export default function ConfiguracionUsuario() {
                   Vista previa en vivo
                 </label>
                 <div
-                  className="rounded-lg border border-[#1E1E28] p-4"
+                  className="rounded-lg border card p-4"
                   style={{
                     background:
                       apariencia.modoPreview === "oscuro" ? "#0B0B13" : "#FFFFFF",
@@ -947,33 +1004,37 @@ export default function ConfiguracionUsuario() {
                 >
                   <div
                     style={{
-                      ["--acento"]: apariencia.acento,
+                      ["--acento"]: apariencia.chatOutgoing,
                     }}
                     className="space-y-4"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div
-                          style={{
-                            background:
-                              apariencia.modoPreview === "oscuro" ? "#141421" : "#F3F4F6",
-                            borderRadius: "9999px",
-                          }}
-                          className={`${densidadMap[apariencia.densidad].avatarSize} flex items-center justify-center`}
-                        >
-                          <span
+                        {apariencia.mostrarAvatares ? (
+                          <div
                             style={{
-                              color: apariencia.modoPreview === "oscuro" ? "#E6E6E6" : "#111827",
+                              background:
+                                apariencia.modoPreview === "oscuro" ? "#141421" : "#F3F4F6",
+                              borderRadius: "9999px",
                             }}
+                            className={`${densidadMap[apariencia.densidad].avatarSize} flex items-center justify-center`}
                           >
-                            U
-                          </span>
-                        </div>
+                            <span
+                              style={{
+                                color: apariencia.modoPreview === "oscuro" ? "#E6E6E6" : "#111827",
+                              }}
+                            >
+                              U
+                            </span>
+                          </div>
+                        ) : (
+                          <div className={`${densidadMap[apariencia.densidad].avatarSize}`} />
+                        )}
                         <div>
-                          <div className="font-semibold" style={{ fontSize: "1rem" }}>
+                          <div className="font-semibold text-base">
                             Usuario de prueba
                           </div>
-                          <div className="text-sm" style={{ color: apariencia.modoPreview === "oscuro" ? "#9CA3AF" : "#6B7280" }}>
+                          <div className="text-sm muted">
                             en línea
                           </div>
                         </div>
@@ -981,8 +1042,8 @@ export default function ConfiguracionUsuario() {
                       <div>
                         <button
                           style={{
-                            background: "var(--acento)",
-                            color: "#000",
+                            background: "var(--accent)",
+                            color: "var(--btn-primary-foreground, #000)",
                           }}
                           className="px-3 py-1 rounded"
                         >
@@ -993,20 +1054,21 @@ export default function ConfiguracionUsuario() {
 
                     <div className={`flex flex-col ${densidadMap[apariencia.densidad].itemGap}`}>
                       <div className={`rounded ${densidadMap[apariencia.densidad].itemPadding}`} style={{
-                        background: apariencia.modoPreview === "oscuro" ? "#121217" : "#F8FAFC",
+                        background: apariencia.chatIncoming || (apariencia.modoPreview === "oscuro" ? "#121217" : "#F8FAFC"),
+                        color: 'var(--text)',
                         alignSelf: "flex-start",
                         maxWidth: "75%",
                       }}>
-                        <div style={{ fontSize: "0.95rem" }}>Hola! este es un ejemplo de mensaje.</div>
+                        <div className="text-sm" style={{ fontSize: "0.95em" }}>{apariencia.mostrarTimestamps ? <span className="text-xs muted mr-2">10:12</span> : null}Hola! este es un ejemplo de mensaje.</div>
                       </div>
 
                       <div className={`rounded ${densidadMap[apariencia.densidad].itemPadding}`} style={{
-                        background: "var(--acento)",
-                        color: "#000",
+                        background: apariencia.chatOutgoing || "var(--accent)",
+                        color: "var(--btn-primary-foreground, #000)",
                         alignSelf: "flex-end",
                         maxWidth: "70%",
                       }}>
-                        <div style={{ fontSize: "0.95rem" }}>Respuesta con color de acento.</div>
+                        <div className="text-sm" style={{ fontSize: "0.95em" }}>{apariencia.mostrarTimestamps ? <span className="text-xs muted mr-2">10:13</span> : null}Respuesta.</div>
                       </div>
                     </div>
 
@@ -1020,15 +1082,7 @@ export default function ConfiguracionUsuario() {
                           border: "1px solid rgba(255,255,255,0.03)",
                         }}
                       />
-                      <button
-                        style={{
-                          background: "var(--acento)",
-                          color: "#000",
-                        }}
-                        className="px-3 py-2 rounded"
-                      >
-                        Enviar
-                      </button>
+                      <button className="btn btn-primary">Enviar</button>
                     </div>
 
                     <div className="text-xs" style={{ color: apariencia.modoPreview === "oscuro" ? "#9CA3AF" : "#6B7280" }}>
@@ -1039,8 +1093,12 @@ export default function ConfiguracionUsuario() {
 
                 <div className="mt-4 flex justify-end">
                   <button
-                    onClick={() => setApariencia(aparienciaDefault)}
-                    className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm"
+                    onClick={() => {
+                      // mark as user-initiated so restoring defaults updates global theme if needed
+                      userInitiatedModeChangeRef.current = true;
+                      setApariencia(aparienciaDefault);
+                    }}
+                    className="btn btn-secondary text-sm"
                   >
                     Restaurar por defecto
                   </button>
@@ -1058,7 +1116,7 @@ export default function ConfiguracionUsuario() {
           <div className="max-w-4xl">
             <h2 className="text-2xl font-semibold mb-4">Atajos del teclado</h2>
 
-            <div className="bg-[#141421] p-6 rounded-lg">
+            <div className="panel p-6 rounded-lg">
               <p className="text-gray-400 mb-4">Haz clic en una combinación para editarla. Se abrirá un modal que capturará la nueva combinación.</p>
 
               {/* Lista de atajos */}
@@ -1066,17 +1124,17 @@ export default function ConfiguracionUsuario() {
                 {Object.keys(atajos).map((action) => (
                   <div
                     key={action}
-                    className="flex items-center justify-between bg-[#0F0F14] p-3 rounded hover:shadow-md transition-shadow"
+                    className="flex items-center justify-between panel p-3 rounded hover:shadow-md transition-shadow"
                   >
                     <div>
                       <div className="font-medium">{action}</div>
-                      <div className="text-sm text-gray-400">Acción en la aplicación</div>
+                      <div className="text-sm muted">Acción en la aplicación</div>
                     </div>
 
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => openEditModal(action)}
-                        className="px-3 py-1 rounded border border-[#23232B] hover:bg-[#16161A]"
+                        className="btn btn-secondary"
                         title="Editar atajo"
                       >
                         <span className="text-sm font-medium">{displayCombo(atajos[action])}</span>
@@ -1084,7 +1142,7 @@ export default function ConfiguracionUsuario() {
 
                       <button
                         onClick={() => resetShortcut(action)}
-                        className="text-sm px-2 py-1 rounded text-gray-300 bg-transparent border border-transparent hover:text-white"
+                        className="btn btn-ghost"
                         title="Restaurar atajo por defecto"
                       >
                         Restaurar
@@ -1100,7 +1158,7 @@ export default function ConfiguracionUsuario() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={restoreAllAtajosDefault}
-                    className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm"
+                    className="btn btn-secondary"
                   >
                     Restaurar todo
                   </button>
@@ -1112,7 +1170,7 @@ export default function ConfiguracionUsuario() {
 
         {/* --- RESTO (Idioma etc) --- */}
         {seccion === "Idioma" && (
-          <div className="bg-[#141421] p-6 rounded-xl border border-[#222236] text-white max-w-3xl mx-auto">
+          <div className="panel p-6 rounded-xl border max-w-3xl mx-auto">
             <h2 className="text-2xl font-semibold mb-2">Idioma</h2>
             <p className="text-sm text-gray-400 mb-6">Selecciona el idioma de la aplicación</p>
 
@@ -1130,12 +1188,12 @@ export default function ConfiguracionUsuario() {
                 <label
                   key={lang.code}
                   className={`flex items-center justify-between px-4 py-3 rounded-lg cursor-pointer transition-colors duration-200 border ${idioma === lang.code
-                      ? "bg-emerald-500/10 border-emerald-400"
-                      : "bg-[#1a1a2e] border-[#2a2a3a] hover:bg-[#1f1f33] hover:border-emerald-400/40"
+                    ? "bg-emerald-500/10 border-emerald-400"
+                    : "panel"
                     }`}
                 >
                   <div className="flex flex-col">
-                    <span className="font-medium text-white">{lang.native}</span>
+                    <span className="font-medium">{lang.native}</span>
                     <span className="text-xs text-gray-400">{lang.translation}</span>
                   </div>
 
@@ -1170,12 +1228,12 @@ export default function ConfiguracionUsuario() {
           />
 
           {/* modal box */}
-          <div className="relative z-10 w-full max-w-lg bg-[#0F0F14] border border-[#1E1E28] rounded-lg p-6 shadow-lg transform transition-all">
+          <div className="relative z-10 w-full max-w-lg panel border rounded-lg p-6 shadow-lg transform transition-all">
             <h3 className="text-lg font-semibold mb-2">Presioná la nueva combinación</h3>
             <p className="text-sm text-gray-400 mb-4">Atajo: <span className="font-medium">{actionEditing}</span></p>
 
             <div className="mb-4">
-              <div className="bg-[#141421] p-4 rounded text-center text-xl font-mono">
+              <div className="card p-4 rounded text-center text-xl font-mono">
                 {capturedCombo || "Esperando teclas..."}
               </div>
               <p className="text-xs text-gray-400 mt-2">Soporta Ctrl, Shift, Alt, Meta y teclas normales. Presioná la combinación que quieras asignar.</p>
@@ -1184,14 +1242,13 @@ export default function ConfiguracionUsuario() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={closeModal}
-                className="px-3 py-1 rounded bg-transparent border border-[#2A2A33] hover:bg-[#16161A]"
+                className="btn btn-ghost"
               >
                 Cancelar
               </button>
               <button
                 onClick={confirmCapturedCombo}
-                className="px-3 py-1 rounded"
-                style={{ background: "#00FFA0", color: "#000" }}
+                className="btn btn-primary"
               >
                 Guardar
               </button>

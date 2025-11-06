@@ -6,7 +6,7 @@ import { AuthContext } from "../context/authcontext";
 // Loader simple
 function Loader() {
   return (
-    <div className="flex items-center justify-center h-screen bg-[#0B0B13] text-white">
+    <div className="flex items-center justify-center h-screen">
       <div className="text-center">
         <div className="loader mb-4" />
         <p className="text-lg">Cargando usuario...</p>
@@ -162,19 +162,14 @@ export default function Home() {
 
   const handleCrearClase = () => navigate("/crear-Clase");
   const handleUnirmeClase = () => navigate("/unirme-Clase");
-  const handleCerrarSesion = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
 
   if (!usuarioListo) {
     return <Loader />;
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-[#0B0B13] text-white font-sans">
-      {/* Sidebar izquierdo */}
-      <div className="w-full lg:w-[320px] border-b lg:border-b-0 lg:border-r border-[#1E1E2D] flex flex-col justify-between">
+    <div className="flex flex-col lg:flex-row h-screen font-sans">
+      <div className="w-full lg:w-[320px] panel border-b lg:border-b-0 lg:border-r flex flex-col justify-between">
         <div className="p-4 flex-1 overflow-y-auto max-h-[calc(100vh-80px)]">
           <h2 className="text-white font-semibold text-[15px] mb-4 fade-in">Notifications</h2>
 
@@ -184,7 +179,7 @@ export default function Home() {
             <p className="text-gray-400 text-sm">No hay notificaciones</p>
           ) : (
             notificaciones.map((noti) => (
-              <div key={noti.asignacion_id} className="bg-[#141426] rounded-lg p-4 mb-4">
+              <div key={noti.asignacion_id} className="card rounded-lg p-4 mb-4">
                 <h3 className="text-[20px] font-bold mb-1">{noti.titulo}</h3>
                 <p className="text-[14px] text-gray-300 mb-2">{noti.tipo}</p>
                 <p className="text-[13px] leading-4">{noti.descripcion}</p>
@@ -199,7 +194,7 @@ export default function Home() {
                       </button>
                       <button
                         onClick={() => handleRechazar(noti.asignacion_id)}
-                        className="bg-[#FF3B6E] hover:bg-[#e2315f] text-white px-3 py-1 rounded-lg font-bold hover:scale-110 transition-all duration-200"
+                        className="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-lg font-bold hover:scale-110 transition-all duration-200"
                       >
                         Rechazar
                       </button>
@@ -207,7 +202,7 @@ export default function Home() {
                   ) : (
                     <button
                       onClick={() => handleEliminar(noti.asignacion_id)}
-                      className="bg-[#FF3B6E] hover:bg-[#e2315f] text-white font-bold w-6 h-6 rounded-full flex items-center justify-center hover:scale-110 transition-all duration-200"
+                      className="bg-red-600 hover:bg-red-500 text-white font-bold w-6 h-6 rounded-full flex items-center justify-center hover:scale-110 transition-all duration-200"
                     >
                       X
                     </button>
@@ -218,7 +213,7 @@ export default function Home() {
           )}
         </div>
 
-        <div className="bg-[#0B0B13] border-t border-[#1E1E2D] p-3 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="panel border-t p-3 flex flex-col sm:flex-row items-center justify-between gap-4">
           <button onClick={() => navigate("/configuracion")}>
             <BsHexagon className="text-2xl text-white hover:text-gray-400 cursor-pointer" />
           </button>
@@ -229,12 +224,6 @@ export default function Home() {
               alt="Usuario"
               className="w-10 h-10 rounded-full object-cover"
             />
-            <button
-              onClick={handleCerrarSesion}
-              className="ml-2 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-all duration-200"
-            >
-              Cerrar sesión
-            </button>
           </div>
         </div>
       </div>
@@ -254,7 +243,7 @@ export default function Home() {
               <Link
                 key={clase.id}
                 to={`/clase/${clase.id}`}
-                className="block bg-[#141426] rounded-lg p-4 mb-2 cursor-pointer hover:bg-[#1f2a4f] transition-all duration-300"
+                className="block card rounded-lg p-4 mb-2 cursor-pointer hover:shadow-md transition-all duration-300"
               >
                 <h3 className="text-[17px] font-semibold">{clase.nombre}</h3>
                 <p className="text-[13px] text-gray-300">Profesor {clase.profesor_nombre}</p>
@@ -267,7 +256,7 @@ export default function Home() {
         <div className="border-t border-white flex flex-col sm:flex-row gap-4 mt-4 justify-end pt-4">
           <button
             onClick={handleUnirmeClase}
-            className="px-4 py-2 rounded bg-[#2C2C3E] text-white hover:bg-[#3d3d52] transition-all duration-200"
+            className="px-4 py-2 rounded panel hover:shadow-md transition-all duration-200"
           >
             Unirme a una clase
           </button>

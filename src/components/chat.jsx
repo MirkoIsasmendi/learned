@@ -12,6 +12,52 @@ export default function ChatWidget({ isOpen, onClose }) {
   const mensajesRef = useRef(null);
   const mensajesEndRef = useRef(null);
 
+  // Apariencia: read from localStorage so the chat reflects user settings
+  const defaultApariencia = {
+    chatIncoming: "#121217",
+    chatOutgoing: "#00FFA0",
+    mostrarAvatares: true,
+    mostrarTimestamps: true,
+    escalaFuente: 1,
+  };
+
+  const [apariencia, setApariencia] = useState(() => {
+    try {
+      const raw = localStorage.getItem("cfg_apariencia_v1");
+      if (raw) return { ...defaultApariencia, ...JSON.parse(raw) };
+    } catch (e) {}
+    return defaultApariencia;
+  });
+
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === "cfg_apariencia_v1") {
+        try {
+          const parsed = JSON.parse(e.newValue || "{}");
+          setApariencia((prev) => ({ ...prev, ...parsed }));
+        } catch (err) {}
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  // Small helper: decide readable text color for a background hex
+  const textColorForBg = (hex) => {
+    try {
+      if (!hex) return "#000";
+      const h = hex.replace("#", "");
+      const r = parseInt(h.substring(0, 2), 16) / 255;
+      const g = parseInt(h.substring(2, 4), 16) / 255;
+      const b = parseInt(h.substring(4, 6), 16) / 255;
+      const a = [r, g, b].map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
+      const lum = 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+      return lum > 0.5 ? "#000" : "#fff";
+    } catch (e) {
+      return "#000";
+    }
+  };
+
   // Parse token to get current user id and name (no verification, just decode payload)
   const parseJwt = (token) => {
     if (!token) return null;
@@ -140,7 +186,7 @@ export default function ChatWidget({ isOpen, onClose }) {
 
   return (
     <div
-      className={`fixed top-0 right-0 h-full w-[400px] bg-[#1A1A2E] text-black shadow-lg border-l transition-transform duration-300 z-50 ${animacion}`}
+      className={`fixed top-0 right-0 h-full w-[400px] panel shadow-lg border-l transition-transform duration-300 z-50 ${animacion}`}
     >
       <div className="flex flex-col h-full">
         {/* Mensajes */}
@@ -149,24 +195,28 @@ export default function ChatWidget({ isOpen, onClose }) {
             <div
               key={i}
               className={`chat-message ${msg.from === "user" ? "self" : "other"}`}
-              style={{ animationDelay: `${i * 0.1}s` }}
+              style={{ animationDelay: `${i * 0.1}s`, fontSize: `${apariencia.escalaFuente}rem` }}
             >
               {msg.from !== "user" ? (
                 <div className="flex items-start gap-3">
-                  <img src={msg.avatar} alt={msg.usuario} className="w-8 h-8 rounded-full mr-2" />
+                  {apariencia.mostrarAvatares && (
+                    <img src={msg.avatar} alt={msg.usuario} className="w-8 h-8 rounded-full mr-2" />
+                  )}
                   <div>
-                    <div className="text-xs text-gray-400 font-semibold mb-1">{msg.usuario}</div>
-                    <div className="bg-gray-200 text-black rounded-bl-none rounded-lg px-3 py-2 text-sm">
+                    <div className="text-xs text-gray-400 font-semibold mb-1">{msg.usuario}{apariencia.mostrarTimestamps ? <span className="text-xs muted ml-2">10:12</span> : null}</div>
+                    <div className="rounded-bl-none rounded-lg px-3 py-2 text-sm" style={{ background: apariencia.chatIncoming || '#121217', color: textColorForBg(apariencia.chatIncoming || '#121217' ) }}>
                       {msg.text}
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="flex items-end justify-end">
-                  <div className="bg-green-200 text-black rounded-br-none rounded-lg px-3 py-2 text-sm">
-                    {msg.text}
+                  <div className="rounded-br-none rounded-lg px-3 py-2 text-sm" style={{ background: apariencia.chatOutgoing || '#00FFA0', color: textColorForBg(apariencia.chatOutgoing || '#00FFA0') }}>
+                    {msg.text}{apariencia.mostrarTimestamps ? <span className="text-xs muted ml-2">10:13</span> : null}
                   </div>
-                  <img src={msg.avatar} alt={msg.usuario} className="w-8 h-8 rounded-full ml-2" />
+                  {apariencia.mostrarAvatares && (
+                    <img src={msg.avatar} alt={msg.usuario} className="w-8 h-8 rounded-full ml-2" />
+                  )}
                 </div>
               )}
             </div>
@@ -175,14 +225,14 @@ export default function ChatWidget({ isOpen, onClose }) {
         </div>
 
         {/* Input */}
-        <div className="border-t border-[#F3F3F3] p-4 flex gap-2 bg-[#1A1A2E]">
+        <div className="border-t panel p-4 flex gap-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && enviarMensaje()}
             placeholder="Escribe un mensaje..."
-            className="flex-1 bg-white border px-3 py-2 rounded focus:ring-2 focus:ring-green-500 transition-all duration-200"
+            className="flex-1 surface border px-3 py-2 rounded focus:ring-2 focus:ring-green-500 transition-all duration-200"
           />
           <button
             onClick={enviarMensaje}
