@@ -9,6 +9,35 @@ const DetalleTarea = ({ tarea, onClose }) => {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+  const [mensaje, setMensaje] = useState("");
+  const [archivo, setArchivo] = useState(null);
+
+  const handleUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setArchivo(file.name);
+
+    const formData = new FormData();
+    formData.append("archivo", file);
+
+    try {
+      const res = await fetch("http://localhost:5000/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.text();
+      setMensaje(data);
+    } catch (err) {
+      setMensaje("Error al subir archivo");
+    }
+  };
+
+  const handleDownload = (filename) => {
+    if (!filename) return;
+    window.location.href = `${API_URL}/api/trabajos/archivos/download/${filename}`;
+  };
+
   // Maneja pegar archivos en la caja de abajo
   const handlePaste = (e) => {
     const items = e.clipboardData.items;
@@ -32,9 +61,13 @@ const DetalleTarea = ({ tarea, onClose }) => {
       if (res.ok) {
         const data = await res.json();
         setArchivosRemotos(Array.isArray(data) ? data : []);
+      } else {
+        console.warn('No se encontraron archivos o error en la solicitud', res.status);
+        setArchivosRemotos([]);
       }
     } catch (err) {
       console.error('Error listando archivos remotos', err);
+      setArchivosRemotos([]);
     }
   };
 
@@ -105,9 +138,9 @@ const DetalleTarea = ({ tarea, onClose }) => {
                 <strong className="text-sm truncate" style={{ color: 'var(--text)' }}>Nombre de archivo</strong>
               </div>
               <div className="flex items-center gap-2 text-xs muted">
-                <button className="hover:underline">Abrir archivo</button>
+                <button className="hover:underline" onClick={() => handleDownload('ejemplo.txt')}>Abrir archivo</button>
                 <span>•</span>
-                <button className="hover:underline">Guardar archivo</button>
+                <button className="hover:underline" onClick={() => handleDownload('ejemplo.txt')}>Guardar archivo</button>
               </div>
             </div>
           </div>
@@ -137,10 +170,13 @@ const DetalleTarea = ({ tarea, onClose }) => {
             tabIndex={0}
           >
             {archivos.length === 0 ? (
-                <div className="w-full card rounded-lg px-4 py-3 flex flex-col gap-1 h-full">
+              <div className="w-full card rounded-lg px-4 py-3 flex flex-col gap-1 h-full">
                 <div className="flex items-center gap-2">
                   <RxFile className="text-gray-300 text-xl" />
-                  <span className="text-gray-300 text-sm">Pega aquí archivos (Ctrl+V)</span>
+                  <label className="text-gray-400 text-sm cursor-pointer">
+                    Pega aquí archivos (Ctrl+V)
+                    <input type="file" onChange={handleUpload} className="hidden" />
+                  </label>
                 </div>
               </div>
             ) : (
@@ -150,33 +186,33 @@ const DetalleTarea = ({ tarea, onClose }) => {
                   className="w-full card rounded-lg px-4 py-3 flex flex-col gap-1 mb-2 fade-in"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                      <div className="flex items-center gap-2">
-                        <RxFile className="text-xl" />
-                        <strong className="text-sm truncate" style={{ color: 'var(--text)' }}>{file.name}</strong>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs muted">
-                        <button className="hover:underline">Abrir archivo</button>
-                        <span>•</span>
-                        <button
-                          className="hover:underline"
-                          onClick={() =>
-                            setArchivos((prev) => prev.filter((_, i) => i !== index))
-                          }
-                        >
-                          Eliminar
-                        </button>
-                      </div>
+                  <div className="flex items-center gap-2">
+                    <RxFile className="text-xl" />
+                    <strong className="text-sm truncate" style={{ color: 'var(--text)' }}>{file.name || file}</strong>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs muted">
+                    <button className="hover:underline" onClick={() => handleDownload(file.name || file)}>Abrir archivo</button>
+                    <span>•</span>
+                    <button
+                      className="hover:underline"
+                      onClick={() =>
+                        setArchivos((prev) => prev.filter((_, i) => i !== index))
+                      }
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </div>
               ))
             )}
-              <div className="mt-4">
-                <button
-                  onClick={uploadFiles}
-                  className="w-full btn btn-primary"
-                >
-                  Subir archivos
-                </button>
-              </div>
+            <div className="mt-4">
+              <button
+                onClick={uploadFiles}
+                className="w-full btn btn-primary"
+              >
+                Subir archivos
+              </button>
+            </div>
           </div>
         </div>
 
@@ -199,8 +235,13 @@ const DetalleTarea = ({ tarea, onClose }) => {
         ) : (
           archivosRemotos.map((f, i) => (
             <div key={i} className="flex items-center justify-between card p-2 rounded mb-2">
-              <span className="text-sm truncate" style={{ color: 'var(--text)' }}>{f.filename}</span>
-              <a href={f.url} className="text-green-400 hover:underline" target="_blank" rel="noreferrer">Descargar</a>
+              <span className="text-sm truncate" style={{ color: 'var(--text)' }}>{f.filename || f.nombre}</span>
+              <button 
+                className="text-accent hover:underline" 
+                onClick={() => handleDownload(f.filename || f.nombre)}
+              >
+                Descargar
+              </button>
             </div>
           ))
         )}

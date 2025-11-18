@@ -10,6 +10,28 @@ export default function NuevaTarea() {
   const API_URL = import.meta.env.VITE_API_URL;
   const { id } = useParams();
   const { usuario } = useContext(AuthContext);
+  const [mensaje, setMensaje] = useState("");
+
+  const handleUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setArchivo(file.value)
+
+    const formData = new FormData();
+    formData.append("archivo", file);
+
+    try {
+      const res = await fetch("http://localhost:5000/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.text();
+      setMensaje(data);
+    } catch (err) {
+      setMensaje("Error al subir archivo");
+    }
+  };
 
   const handleGuardarTarea = async () => {
     const token = localStorage.getItem("token");
@@ -39,6 +61,20 @@ export default function NuevaTarea() {
       const data = await response.json();
 
       if (response.ok) {
+        const tareaId = data.trabajo_id;
+        // Upload any pending files and associate them with the task
+        if (archivos.length > 0) {
+          const formData = new FormData();
+          archivos.forEach((f) => formData.append('files', f));
+          try {
+            await fetch(`${API_URL}/api/trabajos/${tareaId}/archivos`, {
+              method: 'POST',
+              body: formData
+            });
+          } catch (err) {
+            console.warn('Algunos archivos no se pudieron subir:', err);
+          }
+        }
         alert("Tarea creada con éxito");
         window.history.back();
       } else {
@@ -77,9 +113,16 @@ export default function NuevaTarea() {
           className="w-full p-2 h-28 rounded surface border mb-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 fade-in"
         />
 
-        <textarea
+        <input
+          type="file"
           placeholder="Agregar archivos"
-          onChange={(e) => setArchivo(e.target.value)}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              setArchivos([...archivos, file]);
+              setArchivo(file.name);
+            }
+          }}
           className="w-full p-2 h-28 rounded surface border mb-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all duration-200 fade-in"
         />
 

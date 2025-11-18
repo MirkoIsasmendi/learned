@@ -996,36 +996,28 @@ export default function ConfiguracionUsuario() {
                 <div
                   className="rounded-lg border card p-4"
                   style={{
-                    background:
-                      apariencia.modoPreview === "oscuro" ? "#0B0B13" : "#FFFFFF",
-                    color: apariencia.modoPreview === "oscuro" ? "#E6E6E6" : "#0B0B13",
+                    background: 'var(--bg)',
+                    color: 'var(--text)',
                     ...previewStyle,
                   }}
                 >
-                  <div
-                    style={{
-                      ["--acento"]: apariencia.chatOutgoing,
-                    }}
-                    className="space-y-4"
-                  >
+                    <div
+                      style={{
+                        ["--acento"]: apariencia.chatOutgoing,
+                      }}
+                      className="space-y-4"
+                    >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         {apariencia.mostrarAvatares ? (
                           <div
                             style={{
-                              background:
-                                apariencia.modoPreview === "oscuro" ? "#141421" : "#F3F4F6",
-                              borderRadius: "9999px",
+                              background: 'var(--panel-01)',
+                              borderRadius: '9999px',
                             }}
                             className={`${densidadMap[apariencia.densidad].avatarSize} flex items-center justify-center`}
                           >
-                            <span
-                              style={{
-                                color: apariencia.modoPreview === "oscuro" ? "#E6E6E6" : "#111827",
-                              }}
-                            >
-                              U
-                            </span>
+                            <span style={{ color: 'var(--text)' }}>U</span>
                           </div>
                         ) : (
                           <div className={`${densidadMap[apariencia.densidad].avatarSize}`} />
@@ -1042,10 +1034,10 @@ export default function ConfiguracionUsuario() {
                       <div>
                         <button
                           style={{
-                            background: "var(--accent)",
-                            color: "var(--btn-primary-foreground, #000)",
+                            background: 'var(--accent)',
+                            color: 'var(--btn-primary-foreground, #000)',
                           }}
-                          className="px-3 py-1 rounded"
+                          className="px-3 py-1 rounded btn btn-primary"
                         >
                           Conectar
                         </button>
@@ -1053,22 +1045,28 @@ export default function ConfiguracionUsuario() {
                     </div>
 
                     <div className={`flex flex-col ${densidadMap[apariencia.densidad].itemGap}`}>
-                      <div className={`rounded ${densidadMap[apariencia.densidad].itemPadding}`} style={{
-                        background: apariencia.chatIncoming || (apariencia.modoPreview === "oscuro" ? "#121217" : "#F8FAFC"),
-                        color: 'var(--text)',
-                        alignSelf: "flex-start",
-                        maxWidth: "75%",
-                      }}>
-                        <div className="text-sm" style={{ fontSize: "0.95em" }}>{apariencia.mostrarTimestamps ? <span className="text-xs muted mr-2">10:12</span> : null}Hola! este es un ejemplo de mensaje.</div>
+                      <div
+                        className={`rounded ${densidadMap[apariencia.densidad].itemPadding}`}
+                        style={{
+                          background: 'var(--accent-incoming, ' + (apariencia.chatIncoming || 'var(--surface-2)') + ')',
+                          color: 'var(--text)',
+                          alignSelf: 'flex-start',
+                          maxWidth: '75%',
+                        }}
+                      >
+                        <div className="text-sm" style={{ fontSize: '0.95em' }}>{apariencia.mostrarTimestamps ? <span className="text-xs muted mr-2">10:12</span> : null}Hola! este es un ejemplo de mensaje.</div>
                       </div>
 
-                      <div className={`rounded ${densidadMap[apariencia.densidad].itemPadding}`} style={{
-                        background: apariencia.chatOutgoing || "var(--accent)",
-                        color: "var(--btn-primary-foreground, #000)",
-                        alignSelf: "flex-end",
-                        maxWidth: "70%",
-                      }}>
-                        <div className="text-sm" style={{ fontSize: "0.95em" }}>{apariencia.mostrarTimestamps ? <span className="text-xs muted mr-2">10:13</span> : null}Respuesta.</div>
+                      <div
+                        className={`rounded ${densidadMap[apariencia.densidad].itemPadding}`}
+                        style={{
+                          background: 'var(--accent, ' + (apariencia.chatOutgoing || '#00FFA0') + ')',
+                          color: 'var(--btn-primary-foreground, #000)',
+                          alignSelf: 'flex-end',
+                          maxWidth: '70%',
+                        }}
+                      >
+                        <div className="text-sm" style={{ fontSize: '0.95em' }}>{apariencia.mostrarTimestamps ? <span className="text-xs muted mr-2">10:13</span> : null}Respuesta.</div>
                       </div>
                     </div>
 

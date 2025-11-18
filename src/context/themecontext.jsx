@@ -24,9 +24,35 @@ export const ThemeProvider = ({ children }) => {
     if (mode === 'oscuro' || mode === 'dark') {
       root.classList.add('dark');
       root.setAttribute('data-theme', 'dark');
+      // restore dark-mode baseline tokens so the original dark colors are respected
+      try {
+        root.style.setProperty('--bg', '#0B0B13');
+        root.style.setProperty('--text', '#E6E6E6');
+        root.style.setProperty('--surface', '#141421');
+        root.style.setProperty('--surface-1', '#141421');
+        root.style.setProperty('--surface-2', '#121217');
+        root.style.setProperty('--panel-01', '#121217');
+        root.style.setProperty('--panel-02', '#1E1E28');
+        root.style.setProperty('--accent', '#00FFA0');
+        root.style.setProperty('--primary', '#2563EB');
+        root.style.setProperty('--success', '#10B981');
+      } catch (err) {}
     } else {
       root.classList.remove('dark');
       root.setAttribute('data-theme', 'light');
+      // restore light-mode baseline tokens
+      try {
+        root.style.setProperty('--bg', '#F7FAFF');
+        root.style.setProperty('--text', '#0F1724');
+        root.style.setProperty('--surface', '#FFFFFF');
+        root.style.setProperty('--surface-1', '#FFFFFF');
+        root.style.setProperty('--surface-2', '#F3F6FA');
+        root.style.setProperty('--panel-01', '#FFFFFF');
+        root.style.setProperty('--panel-02', '#F8FAFF');
+        root.style.setProperty('--accent', '#7C5CFF');
+        root.style.setProperty('--primary', '#2563EB');
+        root.style.setProperty('--success', '#10B981');
+      } catch (err) {}
     }
 
     // also persist to localStorage (merge with existing apariencia object)
